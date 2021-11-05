@@ -162,16 +162,16 @@ function main() {
         var res =
         "group { orientation:'column', alignment:['left','top'], alignChildren:['left','center'], \
             gr1: Group { \
-                compMarkerToKeyBtn: Button { text:'Comp Marker → [Key]',alignment:['top','left'],  } \
-                layerMarkerToKeyBtn: Button { text:'Layer Marker → [Key]',alignment:['top','left'],  } \
+                compMarkerToKeyBtn: Button { text:'Comp → [Key]',alignment:['top','left'],preferredSize:[100,20],  } \
+                layerMarkerToKeyBtn: Button { text:'Layer → [Key]',alignment:['top','left'],preferredSize:[100,20],  } \
             }, \
             gr2: Group { \
-                keyToCompMarkerBtn: Button { text:'Key → Comp [Marker]',alignment:['top','left'],  } \
-                keyToLayerMarkerBtn: Button { text:'Key → Layer [Marker]',alignment:['top','left'],  } \
+                keyToCompMarkerBtn: Button { text:'Key → [Comp]',alignment:['top','left'],preferredSize:[100,20],  } \
+                keyToLayerMarkerBtn: Button { text:'Key → [Layer]',alignment:['top','left'],preferredSize:[100,20],  } \
             }, \
             gr3: Group { \
-                removeBox: Checkbox { text:'Remove Keys/Marker',value:1,alignment:['left','top']}    \
-                indexBox: Checkbox { text:'Record Keys Index',value:0,alignment:['left','top']}    \
+                removeBox: Checkbox { text:'Replace',value:1,alignment:['left','top']}    \
+                indexBox: Checkbox { text:'Record Index',value:0,alignment:['left','top']}    \
             }, \
         }"; 
         pal.gr = pal.add(res);
@@ -185,14 +185,14 @@ function main() {
         pal.gr.gr1.compMarkerToKeyBtn.onClick = function () 
         {
             app.beginUndoGroup(scriptName);
-            compMarkerToKey(pal.gr.gr3.removeBox.value);
+            compMarkerToKey();
             app.endUndoGroup;
         };
 
         pal.gr.gr1.layerMarkerToKeyBtn.onClick = function () 
         {
             app.beginUndoGroup(scriptName);
-            layerMarkerToKey(pal.gr.gr3.removeBox.value);
+            layerMarkerToKey();
             app.endUndoGroup;
         };
 
@@ -200,14 +200,14 @@ function main() {
         pal.gr.gr2.keyToCompMarkerBtn.onClick = function () 
         {
             app.beginUndoGroup(scriptName);
-            keyToCompMarker(pal.gr.gr3.removeBox.value);
+            keyToCompMarker();
             app.endUndoGroup;
         };
 
         pal.gr.gr2.keyToLayerMarkerBtn.onClick = function () 
         {
             app.beginUndoGroup(scriptName);
-            keyToLayerMarker(pal.gr.gr3.removeBox.value);
+            keyToLayerMarker();
             app.endUndoGroup;
         };
 

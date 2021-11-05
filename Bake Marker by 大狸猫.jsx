@@ -171,7 +171,7 @@ function main() {
             }, \
             gr3: Group { \
                 removeBox: Checkbox { text:'Remove Keys/Marker',value:1,alignment:['left','top']}    \
-                indexBox: Checkbox { text:'Record Keys Index',value:1,alignment:['left','top']}    \
+                indexBox: Checkbox { text:'Record Keys Index',value:0,alignment:['left','top']}    \
             }, \
         }"; 
         pal.gr = pal.add(res);

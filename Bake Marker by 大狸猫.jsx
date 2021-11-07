@@ -5,7 +5,7 @@ function main() {
     this.scriptTitle = "Bake Marker by 大狸猫";
 
     var removeBox = 1;
-    var indexBox = 1;
+    var indexBox = 0;
 
     function propertyWidth(){
         var curComp = app.project.activeItem;

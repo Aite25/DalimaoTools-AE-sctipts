@@ -38,12 +38,10 @@ function main() {
         "group { orientation:'column', alignment:['left','top'], alignChildren:['left','center'], \
             gr1: Group { \
                 frameSt: StaticText { text:'Frame' ,preferredSize:[50,17]}    \
-                frameSlider: Slider { alignment:['left','center'], preferredSize:[100,17],minvalue:0 ,maxvalue:30,value:0 } \
+                frameSlider: Slider { alignment:['left','center'], preferredSize:[64,17],minvalue:0 ,maxvalue:30,value:0 } \
+                snapBox: Checkbox { text:'[',value:1,alignment:['left','top']}    \
                 frameEt: EditText { text:'0',alignment:['left','center'], preferredSize:[45,17] } \
                 applyBtn: Button { text:'Apply',alignment:['left','top'],preferredSize:[70,17] } \
-            }, \
-            gr2: Group { \
-                snapBox: Checkbox { text:'|←[',value:1,alignment:['left','top']}    \
             }, \
         }";
         pal.gr = pal.add(res);
@@ -76,7 +74,7 @@ function main() {
             app.endUndoGroup;
         };
 
-        pal.gr.gr2.snapBox.onClick = function () 
+        pal.gr.gr1.snapBox.onClick = function () 
         {
             snapBox = this.value;
         }

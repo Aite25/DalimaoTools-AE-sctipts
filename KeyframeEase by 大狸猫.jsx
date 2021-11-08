@@ -101,7 +101,7 @@ function main() {
                 extractBtn: Button { text:'Extract',alignment:['left','top'],preferredSize:[70,17] } \
             }, \
             gr3: Group { orientation:'row', alignment:['left','top'],\
-                frameSt: StaticText { text:'Frame' ,preferredSize:[40,17]}    \
+                frameBtn: Button { text:'Frame' ,preferredSize:[40,17]}    \
                 minEt: EditText { text:'0',alignment:['left','center'], preferredSize:[25,17] } \
                 frameSlider: Slider { alignment:['left','center'], preferredSize:[43,17],minvalue:0 ,maxvalue:30,value:0 } \
                 maxEt: EditText { text:'30',alignment:['left','center'], preferredSize:[25,17] } \
@@ -254,6 +254,15 @@ function main() {
         }
 
             //frame
+        pal.gr.gr3.frameBtn.onClick = function () 
+        {
+            app.beginUndoGroup(scriptName);
+            if(app.project.activeItem.selectedLayers.length > 1){
+                layerOffset();
+            }
+            app.endUndoGroup;
+        };
+
         pal.gr.gr3.frameEt.onChange = function () 
         {
             this.text = eval(this.text);

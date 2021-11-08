@@ -60,6 +60,26 @@ function main() {
         }
     }
 
+    var framenum = 0;
+    var snapBox = 1;
+
+    function layerOffset(){
+        var thisComp = app.project.activeItem;
+        var secL = thisComp.selectedLayers; // 选择层
+        var fdr = thisComp.frameDuration;
+        var firstINP = secL[0].inPoint;
+        var timeDif = 0;
+        for(var i=0;i<secL.length;i++){
+            if(i == 0 && snapBox == 1){
+                secL[i].startTime += thisComp.time - secL[i].inPoint;
+            }
+            if(i!=0){
+                timeDif = secL[i].inPoint - secL[i].startTime;
+                secL[i].startTime = firstINP + framenum*fdr*i - timeDif;
+            }
+        }
+    }
+
     this.buildUI = function (thisObj)
     {
         // dockable panel or palette
@@ -80,8 +100,14 @@ function main() {
                 spaceEt: EditText { text:'100',alignment:['left','center'], preferredSize:[45,17] } \
                 extractBtn: Button { text:'Extract',alignment:['left','top'],preferredSize:[70,17] } \
             }, \
-            gr3: Group { orientation:'column', alignment:['right','top'],\
-                bakeBtn: Button { text:'Bake',alignment:['left','top'],preferredSize:[70,17] } \
+            gr3: Group { orientation:'row', alignment:['left','top'],\
+                frameSt: StaticText { text:'Frame' ,preferredSize:[40,17]}    \
+                minEt: EditText { text:'0',alignment:['left','center'], preferredSize:[25,17] } \
+                frameSlider: Slider { alignment:['left','center'], preferredSize:[43,17],minvalue:0 ,maxvalue:30,value:0 } \
+                maxEt: EditText { text:'30',alignment:['left','center'], preferredSize:[25,17] } \
+                snapBox: Checkbox { text:'[',value:1,alignment:['left','top']}    \
+                frameEt: EditText { text:'0',alignment:['left','center'], preferredSize:[38,17] } \
+                bakeBtn: Button { text:'Bake',alignment:['left','top'],preferredSize:[40,17] } \
             }, \
         }";
         pal.gr = pal.add(res);
@@ -136,8 +162,6 @@ function main() {
                 pal.gr.gr1.applyBtn.onClick();
             }
         };
-
-
             // apply
         pal.gr.gr1.applyBtn.onClick = function () 
         {
@@ -191,7 +215,7 @@ function main() {
 
             app.endUndoGroup;
         };
-
+            // extract
         pal.gr.gr2.extractBtn.onClick = function () 
         {
             app.beginUndoGroup(scriptName);
@@ -229,6 +253,62 @@ function main() {
             app.endUndoGroup;
         }
 
+            //frame
+        pal.gr.gr3.frameEt.onChange = function () 
+        {
+            this.text = eval(this.text);
+            if (isNaN(this.text))
+            {
+                this.text = 0;
+            }
+            this.parent.frameSlider.value = Math.round(this.text);
+            framenum = parseInt(this.text);
+            if(app.project.activeItem.selectedLayers.length > 1){
+                layerOffset();
+            }
+        }
+    
+            // frameSlider min
+        pal.gr.gr3.minEt.onChange = function () 
+        {
+            this.text = eval(this.text);
+            if (isNaN(this.text))
+            {
+                this.text = 0;
+            }
+            this.parent.frameSlider.minvalue = Math.round(this.text);
+        }
+    
+            // frameSlider max
+        pal.gr.gr3.maxEt.onChange = function () 
+        {
+            this.text = eval(this.text);
+            if (isNaN(this.text))
+            {
+                this.text = 0;
+            }
+            this.parent.frameSlider.maxvalue = Math.round(this.text);
+        }
+    
+
+        pal.gr.gr3.frameSlider.onChange = pal.gr.gr3.frameSlider.onChanging = function () 
+        {
+            app.beginUndoGroup(scriptName);
+            this.value = Math.round(this.value);
+            this.parent.frameEt.text = this.value;
+            framenum = this.value;
+            if(app.project.activeItem.selectedLayers.length > 1){
+                layerOffset();
+            }
+            app.endUndoGroup;
+        };
+    
+        pal.gr.gr3.snapBox.onClick = function () 
+        {
+            snapBox = this.value;
+        }
+
+            // bake
         pal.gr.gr3.bakeBtn.onClick = function () 
         {
             app.beginUndoGroup(scriptName);

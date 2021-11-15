@@ -47,7 +47,8 @@ function main() {
             }, \
             gr3: Group { \
                 ApplyBtn: Button { text:'Apply',alignment:['left','top'], preferredSize:[80,20] } \
-                SelectBtn: Button { text:'Select',alignment:['left','top'], preferredSize:[80,20] } \
+                SelectBtn: Button { text:'Select',alignment:['left','top'], preferredSize:[40,20] } \
+                revSelectBtn: Button { text:'revSel',alignment:['left','top'], preferredSize:[40,20] } \
                 ExtractNameBtn: Button { text:'Extract',alignment:['left','top'], preferredSize:[80,20] } \
             }, \
         }"; 
@@ -81,6 +82,24 @@ function main() {
                     var reg = new RegExp(na,"g");
                 }
                 curLayer.selected = reg.test(curLayer.name);
+            }
+            app.endUndoGroup;
+        };
+
+        // reverse Select
+        pal.gr.gr3.revSelectBtn.onClick = function () 
+        {
+            app.beginUndoGroup(scriptName);
+            var tcomp = app.project.activeItem;
+            var secL = tcomp.selectedLayers;
+            for(var i=0;i<secL.length;i++)
+            {
+                secL[i].selected = 0;
+            }
+            
+            for(var i=0;i<secL.length;i++)
+            {
+                secL[secL.length-1-i].selected = 1;
             }
             app.endUndoGroup;
         };

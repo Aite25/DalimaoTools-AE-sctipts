@@ -197,20 +197,20 @@ function main() {
             }else{var nval = val ;}
 
             eval(
-                'for(var i = 0;i<slayers.length;i++){ \
-                    if(slayers[i] ' + propPath + '.canSetExpression){ \
+                "for(var i = 0;i<slayers.length;i++){ \
+                    if(slayers[i] " + propPath + ".canSetExpression){ \
                         if(valueBox == 1){ \
-                            if(slayers[i]  ' + propPath + '.numKeys == 0){ \
-                                slayers[i]  ' + propPath + ' .setValue(  ' + nval + '  ) ; \
+                            if(slayers[i]  " + propPath + ".numKeys == 0){ \
+                                slayers[i]  " + propPath + " .setValue(  " + nval + "  ) ; \
                             }else{\
-                                slayers[i]  ' + propPath + ' .setValueAtTime( ' + cut + ' ,' + nval + '  ) ;\
+                                slayers[i]  " + propPath + " .setValueAtTime( " + cut + " ," + nval + "  ) ;\
                             } \
                         } \
                         if(expBox == 1){ \
-                            slayers[i] ' + propPath + ' .expression = "' + exp.toString() + '"; \
+                            slayers[i] " + propPath + " .expression = \'" + exp.toString() + "\'; \
                         } \
                     } \
-                }'
+                }"
             );
             app.endUndoGroup;
         };
@@ -230,11 +230,11 @@ function main() {
             }
 
             eval(
-                'for(var i = 0;i<secL.length;i++){ \
+                "for(var i = 0;i<secL.length;i++){ \
                 try{\
-                    secL[i]' + propPath + '.selected = 1; \
+                    secL[i]" + propPath + ".selected = 1; \
                     }catch(e){continue;}\
-                }'
+                }"
             );
             app.endUndoGroup;
         };

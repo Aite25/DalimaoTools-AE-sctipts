@@ -5,7 +5,7 @@ function main() {
     var alertTitle = "大狸猫提示你：";
     this.scriptTitle = "inOuts by 大狸猫";
 
-    function inOutsRelatoKeys(){
+    function inOutsRelatoKeys(type){
         var thisComp = app.project.activeItem;
         var secL = thisComp.selectedLayers;
         var secP = thisComp.selectedProperties;
@@ -37,9 +37,16 @@ function main() {
         }
     
         for(var i=0;i<secLlenArr.length;i++){
-            
-            secLlenArr[i][0].inPoint = secLlenArr[i][1];
-            secLlenArr[i][0].outPoint = secLlenArr[i][2];
+            if(type == 0){
+                var layerlengthdel = secLlenArr[i][1] - secLlenArr[i][0].inPoint + thisComp.frameDuration;
+                secLlenArr[i][0].inPoint = secLlenArr[i][1];
+                secLlenArr[i][0].outPoint = secLlenArr[i][0].outPoint + layerlengthdel;
+            }else if(type == 1){
+                secLlenArr[i][0].inPoint = secLlenArr[i][1];
+                secLlenArr[i][0].outPoint = secLlenArr[i][2];
+            }else if(type == 2){
+                secLlenArr[i][0].outPoint = secLlenArr[i][2];
+            }
         }
     }
 
@@ -104,6 +111,31 @@ function main() {
         }
     }
 
+    function layerExtend(type){
+        var thisComp = app.project.activeItem;
+        var secL = thisComp.selectedLayers;
+        var time = thisComp.time;
+    
+        for(var i = 0;i<secL.length;i++){
+            if(type == 0){
+                if(secL[i].inPoint>time||secL[i].outPoint<time){
+                    var layerOutPointSave = secL[i].outPoint;
+                    secL[i].inPoint = 0;
+                    secL[i].outPoint = layerOutPointSave;
+                }
+            }else if(type == 2){
+                if(secL[i].inPoint>time||secL[i].outPoint<time){
+                    secL[i].outPoint = thisComp.duration;
+                }
+            }else{
+                if(secL[i].inPoint>time||secL[i].outPoint<time){
+                    secL[i].inPoint = 0;
+                    secL[i].outPoint = thisComp.duration;
+                }
+            }
+        }
+    }
+
     this.buildUI = function (thisObj)
     {
         // dockable panel or palette
@@ -113,13 +145,18 @@ function main() {
         var res =
         "group { orientation:'column', alignment:['fill','fill'], alignChildren:['left','top'], \
             gr1: Group { \
-                leftMoveBtn: Button { text:'[',alignment:['left','top'], preferredSize:[20,20] } \
-                rightMoveBtn: Button { text:']',alignment:['left','top'], preferredSize:[20,20] } \
+                leftMoveBtn: Button { text:'[',alignment:['left','top'], preferredSize:[30,20] } \
+                rightMoveBtn: Button { text:']',alignment:['left','top'], preferredSize:[30,20] } \
+                leftKeyMoveBtn: Button { text:'|←◆',alignment:['left','top'], preferredSize:[40,20] } \
+                rightKeyMoveBtn: Button { text:'◆→|',alignment:['left','top'], preferredSize:[40,20] } \
+                inOutsRelatoKeysBtn: Button { text:'|←◆→|',alignment:['left','top'], preferredSize:[60,20] } \
+            }, \
+            gr2: Group { \
                 leftCutBtn: Button { text:'[/=]',alignment:['left','top'], preferredSize:[30,20] } \
                 rightCutBtn: Button { text:'[=/]',alignment:['left','top'], preferredSize:[30,20] } \
-                leftKeyMoveBtn: Button { text:'|←◆',alignment:['left','top'], preferredSize:[30,20] } \
-                rightKeyMoveBtn: Button { text:'◆→|',alignment:['left','top'], preferredSize:[30,20] } \
-                inOutsRelatoKeysBtn: Button { text:'|←◆→|',alignment:['left','top'], preferredSize:[45,20] } \
+                leftExtendBtn: Button { text:'|←[==]',alignment:['left','top'], preferredSize:[40,20] } \
+                rightExtendBtn: Button { text:'[==]→|',alignment:['left','top'], preferredSize:[40,20] } \
+                layerExtendBtn: Button { text:'|←[==]→|',alignment:['left','top'], preferredSize:[60,20] } \
             }, \
         }"; 
         pal.gr = pal.add(res);
@@ -141,42 +178,62 @@ function main() {
         {
             app.beginUndoGroup(scriptName);
             layerMove(1);
-            printObj(app.project.activeItem.selectedLayers[0].selectedProperties[0]);
             app.endUndoGroup;
         };
 
-        pal.gr.gr1.leftCutBtn.onClick = function () 
+        pal.gr.gr2.leftCutBtn.onClick = function () 
         { 
             app.beginUndoGroup(scriptName);
             layerCut(0);
-            alert(000,000)
             app.endUndoGroup;
         };
-        pal.gr.gr1.rightCutBtn.onClick = function () 
+
+        pal.gr.gr2.rightCutBtn.onClick = function () 
         { 
             app.beginUndoGroup(scriptName);
             layerCut(1);
             app.endUndoGroup;
         };
 
+        pal.gr.gr2.leftExtendBtn.onClick = function () 
+        { 
+            app.beginUndoGroup(scriptName);
+            layerExtend(0);
+            app.endUndoGroup;
+        };
+
+        pal.gr.gr2.rightExtendBtn.onClick = function () 
+        { 
+            app.beginUndoGroup(scriptName);
+            layerExtend(2);
+            app.endUndoGroup;
+        };
+
+        pal.gr.gr2.layerExtendBtn.onClick = function () 
+        { 
+            app.beginUndoGroup(scriptName);
+            layerExtend(1);
+            app.endUndoGroup;
+        };
+
         pal.gr.gr1.leftKeyMoveBtn.onClick = function () 
         { 
             app.beginUndoGroup(scriptName);
-            keyMove(0);
+            inOutsRelatoKeys(0);
             app.endUndoGroup;
         };
 
         pal.gr.gr1.rightKeyMoveBtn.onClick = function () 
         { 
             app.beginUndoGroup(scriptName);
-            keyMove(1);
+            inOutsRelatoKeys(2);
             app.endUndoGroup;
         };
 
         pal.gr.gr1.inOutsRelatoKeysBtn.onClick = function () 
         { 
             app.beginUndoGroup(scriptName);
-            inOutsRelatoKeys();
+            inOutsRelatoKeys(1);
             app.endUndoGroup;
         };
 

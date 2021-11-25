@@ -165,13 +165,13 @@ function main() {
                 valueEt: EditText { text:'"+val+"',alignment:['left','center'], preferredSize:[190,20],alignment:['fill','fill'] } \
             }, \
             gr3: Group { alignment:['fill','top'], \
+                shapeExpBtn: Button { text:'ShapeRelaExp ↑↓', preferredSize:[120,20],alignment:['right','top'] } \
                 ApplyBtn: Button { text:'Apply', preferredSize:[60,20],alignment:['right','top'] } \
                 SelectBtn: Button { text:'Select', preferredSize:[60,20],alignment:['right','top'] } \
                 ExtractBtn: Button { text:'Extract', preferredSize:[60,20],alignment:['right','top'] } \
             }, \
             gr4: Group { orientation:'row', alignment:['fill','top'], \
-                expBox: Checkbox { text:'Exp',value:"+expBox+",alignment:['left','top']}    \
-                shapeExpBtn: Button { text:'ShapeRelaExp ↑↓', preferredSize:[200,20],alignment:['right','top'] } \
+                expBox: Checkbox { text:'Expression',value:"+expBox+",alignment:['left','top']}    \
             }, \
             gr5: Group { orientation:'row', alignment:['fill','fill'], \
                 expEt: EditText { text:'value',alignment:['fill','fill'] ,preferredSize:[300,300] ,properties: { multiline: true }} \
@@ -280,7 +280,7 @@ function main() {
         };
 
         // Shape Exp
-        pal.gr.gr4.shapeExpBtn.onClick = function () 
+        pal.gr.gr3.shapeExpBtn.onClick = function () 
         {
             app.beginUndoGroup(scriptName);
             var thisComp = app.project.activeItem;

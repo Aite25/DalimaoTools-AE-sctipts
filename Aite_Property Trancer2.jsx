@@ -11,6 +11,143 @@ function main() {
     var valueBox = 1;
     var matchBox = 1;
 
+    var revBox = 0;
+    var lastExp = '';
+    var expReverseInvert = 0;
+
+    function expslice(exp,cutpointword){
+        return exp.slice(0,exp.search(cutpointword)+1);
+    }
+
+    function relaPathExp(bool,cover){
+        var thisComp = app.project.activeItem;
+        var secP = thisComp.selectedProperties;
+    
+        var propPathArr0 = [];
+        var propPathArr1 = [];
+
+        var curP0 = secP[0];
+        var curP1 = secP[1];
+
+        var curPs;
+        if(bool){
+            curPs = curP0;
+            curP0 = curP1;
+            curP1 = curPs;
+        }
+
+        var curP0c = curP0;
+        var curP1c = curP1;
+
+        var depth0 = curP0.propertyDepth;
+        var depth1 = curP1.propertyDepth;
+    
+        function nametrans(namestr){
+            namestr = namestr.toLowerCase();
+            var outputStr = '';
+            var last_is_Space = 0;
+            for(var i = 0;i<namestr.length;i++){
+                if(namestr[i] == ' '){last_is_Space = 1;continue;}
+                if(last_is_Space == 1){
+                    last_is_Space = 0;
+                    outputStr += namestr[i].toUpperCase();
+                }else{
+                    outputStr += namestr[i];
+                }
+            }
+            return outputStr;
+        }
+    
+        // 提取路径数组
+        for(var i = 0;i<depth0;i++){
+            propPathArr0.push(curP0);
+            curP0 = curP0.propertyGroup(1);
+        }
+        propPathArr0.reverse();
+    
+        for(var i = 0;i<depth1;i++){
+            propPathArr1.push(curP1);
+            curP1 = curP1.propertyGroup(1);
+        }
+        propPathArr1.reverse();
+    
+        // 比较数组，删除相同部分
+        var minlength = propPathArr0.length > propPathArr1.length ? propPathArr1.length:propPathArr0.length;
+    
+        // 删除的时候数组有变化，需要一起删，新建变量存删除的长度
+        var deleteNum = 0;
+    
+        var last_is_Contents = 0;
+    
+        for(var i = 0;i<minlength;i++){
+            if(propPathArr0[i] == propPathArr1[i]){
+                if(propPathArr0[i].name == "Contents" && propPathArr1[i].name == "Contents"){
+                    last_is_Contents = 1;
+                }else{
+                    last_is_Contents = 0;
+                }
+                continue;
+            }else{
+                if(last_is_Contents == 1){
+                    deletenum = i-1;
+                }else{deletenum = i;}
+                break;
+            }
+        }
+    
+        var propPathArr0 = propPathArr0.slice(deletenum);
+        var propPathArr1 = propPathArr1.slice(deletenum);
+    
+        // 同组内tranform情况下换位
+        // var propPathArrSave = [];
+        // var trans = 0;
+        // if(propPathArr0[0].name == "Transform"){
+        //     trans = 1;
+        //     propPathArrSave = propPathArr1;
+        //     propPathArr1 = propPathArr0;
+        //     propPathArr0 = propPathArrSave;
+        // }
+    
+        // 检测器
+    
+        // var alstr = "";
+        // for(var i = 0;i<propPathArr1.length;i++){
+        //     alstr += propPathArr1[i].name;
+        // }
+        // alert(alstr);
+
+        // 表达式字符串生成
+        var pgroup = propPathArr0.length;
+        var expstr = "thisProperty.propertyGroup(" + pgroup + ").";
+        last_is_Contents = 0;
+    
+        for(var i = 0;i<propPathArr1.length;i++){
+            if(propPathArr1[i].name == "Contents"){
+                expstr += "content(\"";
+                last_is_Contents = 1;
+                continue;
+            }
+            if(last_is_Contents == 1){
+                expstr += propPathArr1[i].name;
+                expstr += "\").";
+                last_is_Contents = 0;
+                continue;
+            }
+            if(i != propPathArr1.length-1){expstr += nametrans(propPathArr1[i].name)+'.';}
+            else{expstr += nametrans(propPathArr1[i].name);}
+        }
+        var finProp;
+        
+        finProp = curP0c;
+        
+        if(cover){
+            finProp.expression = expstr;
+        }else{
+            finProp.expression += expstr;
+        }
+        lastExp = expstr;
+    }
+
     this.buildUI = function (thisObj)
     {
         // dockable panel or palette
@@ -28,12 +165,15 @@ function main() {
                 valueEt: EditText { text:'"+val+"',alignment:['left','center'], preferredSize:[190,20],alignment:['fill','fill'] } \
             }, \
             gr3: Group { alignment:['fill','top'], \
-                expBox: Checkbox { text:'Expression',value:"+expBox+",alignment:['left','top']}    \
                 ApplyBtn: Button { text:'Apply', preferredSize:[60,20],alignment:['right','top'] } \
                 SelectBtn: Button { text:'Select', preferredSize:[60,20],alignment:['right','top'] } \
                 ExtractBtn: Button { text:'Extract', preferredSize:[60,20],alignment:['right','top'] } \
             }, \
-            gr4: Group { orientation:'row', alignment:['fill','fill'], \
+            gr4: Group { orientation:'row', alignment:['fill','top'], \
+                expBox: Checkbox { text:'Exp',value:"+expBox+",alignment:['left','top']}    \
+                shapeExpBtn: Button { text:'ShapeRelaExp ↑↓', preferredSize:[200,20],alignment:['right','top'] } \
+            }, \
+            gr5: Group { orientation:'row', alignment:['fill','fill'], \
                 expEt: EditText { text:'value',alignment:['fill','fill'] ,preferredSize:[300,300] ,properties: { multiline: true }} \
             }, \
         }"; 
@@ -133,11 +273,26 @@ function main() {
             pal.gr.gr1.pathEt.text = pathstr;
             pal.gr.gr2.valueEt.text = val;
 
-            pal.gr.gr4.expEt.text = thisP.expression;
+            pal.gr.gr5.expEt.text = thisP.expression;
             exp = "'" + thisP.expression + "'";
 
             app.endUndoGroup;
         };
+
+        // Shape Exp
+        pal.gr.gr4.shapeExpBtn.onClick = function () 
+        {
+            app.beginUndoGroup(scriptName);
+            var thisComp = app.project.activeItem;
+            var secP = thisComp.selectedProperties;
+    
+            secP[revBox^expReverseInvert].expression = expslice(secP[revBox^expReverseInvert].expression,lastExp);
+            relaPathExp(!revBox^expReverseInvert,0);
+    
+            expReverseInvert = !expReverseInvert;
+    
+            app.endUndoGroup;
+        }
 
         // pathEt
         pal.gr.gr1.pathEt.onChange = function () 
@@ -157,7 +312,7 @@ function main() {
             }
         }
 
-        pal.gr.gr4.expEt.onChange = function () 
+        pal.gr.gr5.expEt.onChange = function () 
         {
             exp = this.text;
         }
@@ -170,17 +325,13 @@ function main() {
         // };
 
         // box
-        pal.gr.gr1.matchBox.onClick = function () 
-        {
-            matchBox = this.value;
-        }
 
         pal.gr.gr2.valueBox.onClick = function () 
         {
             valueBox = this.value;
         }
 
-        pal.gr.gr3.expBox.onClick = function () 
+        pal.gr.gr4.expBox.onClick = function () 
         {
             expBox = this.value;
         }

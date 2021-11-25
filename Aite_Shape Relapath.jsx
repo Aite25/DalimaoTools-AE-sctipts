@@ -4,6 +4,8 @@ function main() {
     this.scriptTitle = "Shape relapath by 大狸猫";
     var panelGlobal = this;
     var revBox = 0;
+    var lastExp = '';
+    var expReverseInvert = 0;
 
     // DIALOG
     // ======
@@ -46,6 +48,11 @@ function main() {
         expCover.text = "Exp ="; 
         expCover.preferredSize.width = 45;
         expCover.preferredSize.height = 20;
+
+    var expReverse = panel1.add("button", undefined, undefined, {name: "expReverse"}); 
+        expReverse.text = "Exp ↑↓"; 
+        expReverse.preferredSize.width = 45;
+        expReverse.preferredSize.height = 20;
     
     dialog.layout.layout(true);
     dialog.layout.resize();
@@ -53,6 +60,10 @@ function main() {
     
     if ( dialog instanceof Window ) dialog.show();
     
+    function expslice(exp,cutpointword){
+        return exp.slice(0,exp.search(cutpointword)+1);
+    }
+
     function relaPathExp(bool,cover){
         var thisComp = app.project.activeItem;
         var secP = thisComp.selectedProperties;
@@ -179,7 +190,7 @@ function main() {
         }else{
             finProp.expression += expstr;
         }
-
+        lastExp = expstr;
     }
 
     expPlus.onClick = function () 
@@ -193,6 +204,20 @@ function main() {
     {
         app.beginUndoGroup(scriptName);
         relaPathExp(revBox,1);
+        app.endUndoGroup;
+    }
+
+    expReverse.onClick = function () 
+    {
+        app.beginUndoGroup(scriptName);
+        var thisComp = app.project.activeItem;
+        var secP = thisComp.selectedProperties;
+
+        secP[revBox^expReverseInvert].expression = expslice(secP[revBox^expReverseInvert].expression,lastExp);
+        relaPathExp(!revBox^expReverseInvert,1);
+
+        expReverseInvert = !expReverseInvert;
+
         app.endUndoGroup;
     }
 

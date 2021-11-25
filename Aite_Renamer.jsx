@@ -9,6 +9,7 @@ function main() {
     var labelbox = 1;
     var regexp = 0;
     var zeroBox = 0;
+    var startnum = 0;
 
     function printObj (obj){
         var str = "";
@@ -22,10 +23,10 @@ function main() {
     {
         var lays = app.project.activeItem.selectedLayers;
         for(var i = 0;i<lays.length;i++){
-            if(zeroBox){
-                lays[i].name = na + " " + i.toString();
-            }else{
+            if(!zeroBox){
                 lays[i].name = na + " " + (i+1).toString();
+            }else{
+                lays[i].name = na + " " + (i+startnum).toString();
             }
 
             if(labelbox == 1){
@@ -44,13 +45,14 @@ function main() {
         "group { orientation:'column', alignment:['fill','fill'], alignChildren:['left','top'], \
             gr1: Group { \
                 nameEt: EditText { text:'"+na+"',alignment:['left','center'], preferredSize:[195,20] } \
-                zeroBox: Checkbox { text:'0',preferredSize:[25,17],value:"+zeroBox+"}    \
+                zeroBox: Checkbox { text:'',preferredSize:[15,17],value:"+zeroBox+"}    \
+                startnumEt: EditText { text:'"+startnum+"',alignment:['left','center'], preferredSize:[20,20] } \
                 RegExpBox: Checkbox { text:'RegExp',preferredSize:[60,17],value:"+regexp+"}    \
             }, \
             gr2: Group { \
                 labelSlider: Slider { alignment:['left','center'], preferredSize:[160,20],minvalue:0 ,maxvalue:16,value:"+la+" } \
                 labelEt: EditText { text:"+la+",preferredSize:[25,20] }    \
-                labelBox: Checkbox { text:'label',preferredSize:[60,17],value:"+labelbox+"}    \
+                labelBox: Checkbox { text:'Label',preferredSize:[60,17],value:"+labelbox+"}    \
             }, \
             gr3: Group { \
                 ApplyBtn: Button { text:'Apply',alignment:['left','top'], preferredSize:[80,20] } \
@@ -84,11 +86,14 @@ function main() {
             for(var i = 1;i<=tcomp.layers.length;i++){
                 var curLayer = tcomp.layers[i];
                 if(regexp != 1){
-                    var reg = new RegExp("^"+na+".*(\d+)*$","g");
+                    if(curLayer.name.indexOf(na) != -1){
+                        curLayer.selected = 1;
+                    }
+                    // var reg = new RegExp("^"+na+".*(\d+)*$","g");
                 }else if(regexp == 1){
                     var reg = new RegExp(na,"g");
+                    curLayer.selected = reg.test(curLayer.name);
                 }
-                curLayer.selected = reg.test(curLayer.name);
             }
             app.endUndoGroup;
         };
@@ -142,6 +147,16 @@ function main() {
             la = parseInt(this.text);
         }
 
+        pal.gr.gr1.startnumEt.onChange = function () 
+        {
+            this.text = eval(this.text);
+            if (isNaN(this.text))
+            {
+                this.text = 0;
+            }
+            startnum = parseInt(this.text);
+        }
+
         pal.gr.gr2.labelSlider.onChange = pal.gr.gr2.labelSlider.onChanging = function () 
         {
             this.value = Math.round(this.value);
@@ -157,6 +172,13 @@ function main() {
 
         pal.gr.gr1.RegExpBox.onClick = function () 
         {
+            if(this.value == 1){
+                pal.gr.gr1.nameEt.text = '^'+pal.gr.gr1.nameEt.text+'.*(\\d+)*$';
+            }else if(this.value == 0){
+                pal.gr.gr1.nameEt.text = pal.gr.gr1.nameEt.text.replace(".*(\\d+)*$","");
+                pal.gr.gr1.nameEt.text = pal.gr.gr1.nameEt.text.replace("^","");
+            }
+            na = pal.gr.gr1.nameEt.text;
             regexp = this.value;
         }
 

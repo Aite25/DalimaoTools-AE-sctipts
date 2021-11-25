@@ -8,6 +8,7 @@ function main() {
     var la = 1;
     var labelbox = 1;
     var regexp = 0;
+    var zeroBox = 0;
 
     function printObj (obj){
         var str = "";
@@ -21,7 +22,12 @@ function main() {
     {
         var lays = app.project.activeItem.selectedLayers;
         for(var i = 0;i<lays.length;i++){
-            lays[i].name = na + " " + i.toString();
+            if(zeroBox){
+                lays[i].name = na + " " + i.toString();
+            }else{
+                lays[i].name = na + " " + (i+1).toString();
+            }
+
             if(labelbox == 1){
                 lays[i].label = la;
             }
@@ -37,13 +43,14 @@ function main() {
         var res =
         "group { orientation:'column', alignment:['fill','fill'], alignChildren:['left','top'], \
             gr1: Group { \
-                nameEt: EditText { text:'大狸猫图层',alignment:['left','center'], preferredSize:[190,20] } \
-                RegExpBox: Checkbox { text:'RegExp',preferredSize:[60,17],value:0}    \
+                nameEt: EditText { text:'"+na+"',alignment:['left','center'], preferredSize:[195,20] } \
+                zeroBox: Checkbox { text:'0',preferredSize:[25,17],value:"+zeroBox+"}    \
+                RegExpBox: Checkbox { text:'RegExp',preferredSize:[60,17],value:"+regexp+"}    \
             }, \
             gr2: Group { \
-                labelSlider: Slider { alignment:['left','center'], preferredSize:[160,20],minvalue:0 ,maxvalue:16,value:0 } \
-                labelEt: EditText { text:'0',preferredSize:[25,20] }    \
-                labelBox: Checkbox { text:'label',preferredSize:[60,17],value:1}    \
+                labelSlider: Slider { alignment:['left','center'], preferredSize:[160,20],minvalue:0 ,maxvalue:16,value:"+la+" } \
+                labelEt: EditText { text:"+la+",preferredSize:[25,20] }    \
+                labelBox: Checkbox { text:'label',preferredSize:[60,17],value:"+labelbox+"}    \
             }, \
             gr3: Group { \
                 ApplyBtn: Button { text:'Apply',alignment:['left','top'], preferredSize:[80,20] } \
@@ -142,14 +149,20 @@ function main() {
             la = this.value;
         };
 
-        pal.gr.gr2.labelBox.onClick = function () 
+        // box
+        pal.gr.gr1.zeroBox.onClick = function () 
         {
-            labelbox = this.value;
+            zeroBox = this.value;
         }
 
         pal.gr.gr1.RegExpBox.onClick = function () 
         {
             regexp = this.value;
+        }
+
+        pal.gr.gr2.labelBox.onClick = function () 
+        {
+            labelbox = this.value;
         }
 
         // show user interface

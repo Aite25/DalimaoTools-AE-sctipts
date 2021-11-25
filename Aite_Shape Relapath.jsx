@@ -4,6 +4,7 @@ function main() {
     this.scriptTitle = "Shape relapath by 大狸猫";
     var panelGlobal = this;
     var revBox = 0;
+    var covBox = 0;
     var lastExp = '';
     var expReverseInvert = 0;
 
@@ -38,11 +39,11 @@ function main() {
         reverseBox.text = "↑↓"; 
         reverseBox.alignment = ["left","center"]; 
         reverseBox.value = revBox;
-    
-    var expPlus = panel1.add("button", undefined, undefined, {name: "expPlus"}); 
-        expPlus.text = "Exp +="; 
-        expPlus.preferredSize.width = 40;
-        expPlus.preferredSize.height = 20;
+
+        var coverBox = panel1.add("checkbox", undefined, undefined, {name: "coverBox"}); 
+        coverBox.text = "+="; 
+        coverBox.alignment = ["left","center"]; 
+        coverBox.value = covBox;
     
     var expCover = panel1.add("button", undefined, undefined, {name: "expCover"}); 
         expCover.text = "Exp ="; 
@@ -193,17 +194,10 @@ function main() {
         lastExp = expstr;
     }
 
-    expPlus.onClick = function () 
-    {
-        app.beginUndoGroup(scriptName);
-        relaPathExp(revBox,0);
-        app.endUndoGroup;
-    }
-
     expCover.onClick = function () 
     {
         app.beginUndoGroup(scriptName);
-        relaPathExp(revBox,1);
+        relaPathExp(revBox,!covBox);
         app.endUndoGroup;
     }
 
@@ -214,7 +208,7 @@ function main() {
         var secP = thisComp.selectedProperties;
 
         secP[revBox^expReverseInvert].expression = expslice(secP[revBox^expReverseInvert].expression,lastExp);
-        relaPathExp(!revBox^expReverseInvert,1);
+        relaPathExp(!revBox^expReverseInvert,!covBox);
 
         expReverseInvert = !expReverseInvert;
 
@@ -224,6 +218,11 @@ function main() {
     reverseBox.onClick = function () 
     {
         revBox = this.value;
+    }
+
+    coverBox.onClick = function () 
+    {
+        covBox = this.value;
     }
 }
 

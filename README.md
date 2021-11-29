@@ -10,7 +10,7 @@ AE scripts for simple works
 
 1.CompKeys Output：输出关键帧字符串
 2.inOuts：图层长度调整脚本，有个很好用的功能是选中关键帧调整图层进出点
-3.KeyframeEase：
+3.KeyframeEase：\n
   调节关键帧曲线，没有调整关键帧所在时间点速度的功能（默认为0），仅快速调整用。鼠标滚轮移动滑块可以很快的调整曲线；
   调整图层之间的时间间距；
   烘焙选择关键帧时间点的表达式的值；

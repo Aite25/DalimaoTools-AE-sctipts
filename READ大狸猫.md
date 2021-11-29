@@ -1,4 +1,4 @@
-# AE-script
+# 散装大狸猫Tools
 AE scripts for simple works
 
 使用方法：

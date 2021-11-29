@@ -60,6 +60,35 @@ function main() {
         }
     }
 
+    function reverseSeclect(){
+        var tcomp = app.project.activeItem;
+        var secL = tcomp.selectedLayers;
+        for(var i=0;i<secL.length;i++)
+        {
+            secL[i].selected = 0;
+        }
+        
+        for(var i=0;i<secL.length;i++)
+        {
+            secL[secL.length-1-i].selected = 1;
+        }
+    }
+
+    function idcreat(){ 
+        var thisComp = app.project.activeItem;
+        var secL = thisComp.selectedLayers;
+    
+        for(var i = 0;i<secL.length-1;i++){
+            var slider = secL[i].effect.addProperty('ADBE Slider Control');
+            slider.name = "ID";
+            if(secL[i].index > secL[secL.length-1].index){
+                slider(1).expression = 'id = index - thisComp.layer("' + secL[secL.length-1].name + '").index;\n\//id = effect(\"ID\")(\"ADBE Slider Control-0001\");';
+            }else{
+                slider(1).expression = 'id = thisComp.layer("' + secL[secL.length-1].name + '").index - index;\n\//id = effect(\"ID\")(\"ADBE Slider Control-0001\");';
+            }
+        }
+    }
+
     var framenum = 0;
     var snapBox = 1;
 
@@ -101,14 +130,19 @@ function main() {
                 extractBtn: Button { text:'Extract',alignment:['left','top'],preferredSize:[70,17] } \
             }, \
             gr3: Group { orientation:'row', alignment:['left','top'],\
-                frameBtn: Button { text:'Frame' ,preferredSize:[40,17]}    \
-                minEt: EditText { text:'0',alignment:['left','center'], preferredSize:[25,17] } \
-                frameSlider: Slider { alignment:['left','center'], preferredSize:[43,17],minvalue:0 ,maxvalue:30,value:0 } \
-                maxEt: EditText { text:'30',alignment:['left','center'], preferredSize:[25,17] } \
-                snapBox: Checkbox { text:'[',value:1,alignment:['left','top']}    \
-                frameEt: EditText { text:'0',alignment:['left','center'], preferredSize:[38,17] } \
-                bakeBtn: Button { text:'Bake',alignment:['left','top'],preferredSize:[40,17] } \
+                frameSt: StaticText { text:'Frame' ,preferredSize:[50,17]}    \
+                minEt: EditText { text:'0',alignment:['left','center'], preferredSize:[23,17] } \
+                frameSlider: Slider { alignment:['left','center'], preferredSize:[41,17],minvalue:0 ,maxvalue:30,value:0 } \
+                maxEt: EditText { text:'30',alignment:['left','center'], preferredSize:[23,17] } \
+                frameEt: EditText { text:" + framenum + ",alignment:['left','center'], preferredSize:[39,17] } \
+                snapBox: Checkbox { text:'[',value: "+ snapBox +",alignment:['left','top']}    \
+                frameBtn: Button { text:'√' ,preferredSize:[36,17]}    \
             }, \
+            gr4: Group { orientation:'row', alignment:['left','top'],\
+                bakeBtn: Button { text:'Bake',alignment:['left','top'],preferredSize:[76,17] } \
+                revSecLBtn: Button { text:'revSecL',alignment:['left','top'],preferredSize:[100,17] } \
+                idCreatBtn: Button { text:'ID Create',alignment:['left','top'],preferredSize:[100,17] } \
+        }, \
         }";
         pal.gr = pal.add(res);
         
@@ -318,7 +352,7 @@ function main() {
         }
 
             // bake
-        pal.gr.gr3.bakeBtn.onClick = function () 
+        pal.gr.gr4.bakeBtn.onClick = function () 
         {
             app.beginUndoGroup(scriptName);
             var selectedLayers = app.project.activeItem.selectedLayers;
@@ -339,6 +373,21 @@ function main() {
             }
             app.endUndoGroup;
         }
+            // reverseSelect
+        pal.gr.gr4.revSecLBtn.onClick = function () 
+        {
+            app.beginUndoGroup(scriptName);
+            reverseSeclect();
+            app.endUndoGroup;
+        }
+            // ID Create
+        pal.gr.gr4.idCreatBtn.onClick = function () 
+        {
+            app.beginUndoGroup(scriptName);
+            idcreat();
+            app.endUndoGroup;
+        }
+        
 
         var inUI = true;
  

@@ -8,7 +8,7 @@ function main() {
     var exp = "'value'";
     var expBox = 1;
     var valueBox = 1;
-    var matchBox = 1;
+    var matchBox = 0;
 
     var lastExp = '';
     var expReverseInvert = 0;
@@ -273,7 +273,11 @@ function main() {
             
             // 生成路径str;
             for(var i = 0;i<depth;i++){
-                pathstr = "(\"" + curP.name + "\")" + pathstr;
+                if(matchBox == 1){
+                    pathstr = "(\"" + curP.matchName + "\")" + pathstr;
+                }else{
+                    pathstr = "(\"" + curP.name + "\")" + pathstr;
+                }
                 curP = curP.propertyGroup(1);
             }
             // pathstr = pathstr.toLowerCase();//转小写
@@ -321,7 +325,12 @@ function main() {
         //     this.parent.labelEt.text = this.value;
         //     la = this.value;
         // };
+
         // box
+        pal.gr.gr1.matchBox.onClick = function () 
+        {
+            matchBox = this.value;
+        }
         pal.gr.gr2.valueBox.onClick = function () 
         {
             valueBox = this.value;

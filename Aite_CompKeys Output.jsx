@@ -195,7 +195,7 @@ function keysOutput() {
             }
         }
         //特别情况，计算前
-        if(obj.name == "Position"|"位置" && obj.value.length == 3){//位置
+        if(obj.name == "Position"|obj.name == "位置" && obj.value.length == 3){//位置
             if(unityBox == 1){
                 if(hasparent==1){
                     for(var o = 0;o<valueArr.length;o++){
@@ -209,7 +209,7 @@ function keysOutput() {
             }
         }
 
-        if(obj.name == "Position"|"位置" && obj.value.length == 2){//位置
+        if(obj.name == "Position"|obj.name == "位置" && obj.value.length == 2){//位置
             if(unityBox == 1){
                 for(var o = 0;o<valueArr.length;o++){
                     valueArr[o] = [float2type(valueArr[o][0]),float2type(-valueArr[o][1])];
@@ -219,14 +219,14 @@ function keysOutput() {
 
 
 
-        if(obj.name == "Y Rotation"|"Y 轴旋转"){//Y 轴旋转
+        if(obj.name == "Y Rotation"|obj.name == "Y 轴旋转"){//Y 轴旋转
             if(unityBox == 1){
                 for(var o = 0;o<valueArr.length;o++){
                     valueArr[o] = -valueArr[o];
                 }
             }
         }
-        if(obj.name == "Z Rotation"|"Z 轴旋转"){//Z 轴旋转
+        if(obj.name == "Z Rotation"|obj.name == "Z 轴旋转"){//Z 轴旋转
             if(unityBox == 1){
                 for(var o = 0;o<valueArr.length;o++){
                     valueArr[o] = -valueArr[o];
@@ -248,7 +248,7 @@ function keysOutput() {
             varietyArr.push("")
         }
         //特别情况，计算后处理
-        if(obj.name == "Opacity"|"不透明度"){//不透明度
+        if(obj.name == "Opacity"|obj.name == "不透明度"){//不透明度
             for(var i = 0;i<valueArr.length;i++){
                 varietyArr[i] = parseInt(valueArr[i]*2.55);
                 valueArr[i] = valueArr[i]+"%";
@@ -288,7 +288,7 @@ function keysOutput() {
             newArr.push(arr[0]+arr[1]+arr[2],arr[3]);
             return newArr;
         }
-        if(obj.name == "Color"|"颜色"){//颜色
+        if(obj.name == "Color"|obj.name == "颜色"){//颜色
             for(var o = 0;o<valueArr.length;o++){
                 valueArr[o] = matrixSixteenConvert(valueArr[o]);
             }

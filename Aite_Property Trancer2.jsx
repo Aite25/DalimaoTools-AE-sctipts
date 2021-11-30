@@ -11,6 +11,7 @@ function main() {
     var valueBox = 1;
     var matchBox = 1;
 
+    var revBox = 0;
     var lastExp = '';
     var expReverseInvert = 0;
 
@@ -25,35 +26,8 @@ function main() {
         var propPathArr0 = [];
         var propPathArr1 = [];
 
-        var curP0;
-        var curP1;
-
-        // 排除选到组
-        for(var i = 0;i<secP.length;i++){
-            if(secP[i].canSetExpression == 0){continue;}
-            if(secP[i].canSetExpression && (curP0 == undefined)){
-                curP0 = secP[i];
-                continue;
-            }
-            if(secP[i].canSetExpression && (curP1 == undefined) && (curP0 != undefined)){
-                curP1 = secP[i];
-                break;
-            }
-        }
-        // alert(curP0.name + '\n' + curP1.name);
-        if(curP0 == undefined || curP1 == undefined){return;}
-
-        var booleanbox = 0^expReverseInvert;
-
-        if(booleanbox == 0){
-            if(curP0.expression != ""){
-                curP0.expression = expslice(curP0.expression,lastExp);
-            }
-        }else{
-            if(curP1.expression != ""){
-                curP1.expression = expslice(curP1.expression,lastExp);
-            }
-        }
+        var curP0 = secP[0];
+        var curP1 = secP[1];
 
         var curPs;
         if(bool){
@@ -107,7 +81,7 @@ function main() {
     
         for(var i = 0;i<minlength;i++){
             if(propPathArr0[i] == propPathArr1[i]){
-                if(propPathArr0[i].name == "Contents" && propPathArr1[i].name == "Contents"){
+                if((propPathArr0[i].name == "Contents"||propPathArr0[i].name == "内容") && (propPathArr1[i].name == "Contents"||propPathArr1[i].name == "内容")){
                     last_is_Contents = 1;
                 }else{
                     last_is_Contents = 0;
@@ -148,7 +122,7 @@ function main() {
         last_is_Contents = 0;
     
         for(var i = 0;i<propPathArr1.length;i++){
-            if(propPathArr1[i].name == "Contents"){
+            if(propPathArr1[i].name == "Contents"||propPathArr1[i].name == "内容"){
                 expstr += "content(\"";
                 last_is_Contents = 1;
                 continue;
@@ -309,8 +283,14 @@ function main() {
         pal.gr.gr3.shapeExpBtn.onClick = function () 
         {
             app.beginUndoGroup(scriptName);
-            relaPathExp(1^expReverseInvert,0);
+            var thisComp = app.project.activeItem;
+            var secP = thisComp.selectedProperties;
+    
+            secP[revBox^expReverseInvert].expression = expslice(secP[revBox^expReverseInvert].expression,lastExp);
+            relaPathExp(!revBox^expReverseInvert,0);
+    
             expReverseInvert = !expReverseInvert;
+    
             app.endUndoGroup;
         }
 

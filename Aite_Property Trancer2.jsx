@@ -3,7 +3,6 @@ function main() {
     var scriptName = "PropertyTracer by 大狸猫";
     var alertTitle = "大狸猫提示你：";
     this.scriptTitle = "PropertyTracer by 大狸猫";
-
     var propPath = '(\"ADBE Text Opacity\")';
     var val = 0;
     var exp = "'value'";
@@ -11,14 +10,12 @@ function main() {
     var valueBox = 1;
     var matchBox = 1;
 
-    var revBox = 0;
     var lastExp = '';
     var expReverseInvert = 0;
 
     function expslice(exp,cutpointword){
         return exp.slice(0,exp.search(cutpointword)+1);
     }
-
     function relaPathExp(bool,cover){
         var thisComp = app.project.activeItem;
         var secP = thisComp.selectedProperties;
@@ -26,8 +23,35 @@ function main() {
         var propPathArr0 = [];
         var propPathArr1 = [];
 
-        var curP0 = secP[0];
-        var curP1 = secP[1];
+        var curP0;
+        var curP1;
+
+        // 排除选到组
+        for(var i = 0;i<secP.length;i++){
+            if(secP[i].canSetExpression == 0){continue;}
+            if(secP[i].canSetExpression && (curP0 == undefined)){
+                curP0 = secP[i];
+                continue;
+            }
+            if(secP[i].canSetExpression && (curP1 == undefined) && (curP0 != undefined)){
+                curP1 = secP[i];
+                break;
+            }
+        }
+        // alert(curP0.name + '\n' + curP1.name);
+        if(curP0 == undefined || curP1 == undefined){return;}
+
+        var booleanbox = 0^expReverseInvert;
+
+        if(booleanbox == 0){
+            if(curP0.expression != ""){
+                curP0.expression = expslice(curP0.expression,lastExp);
+            }
+        }else{
+            if(curP1.expression != ""){
+                curP1.expression = expslice(curP1.expression,lastExp);
+            }
+        }
 
         var curPs;
         if(bool){
@@ -35,10 +59,8 @@ function main() {
             curP0 = curP1;
             curP1 = curPs;
         }
-
         var curP0c = curP0;
         var curP1c = curP1;
-
         var depth0 = curP0.propertyDepth;
         var depth1 = curP1.propertyDepth;
     
@@ -78,10 +100,10 @@ function main() {
         var deleteNum = 0;
     
         var last_is_Contents = 0;
-    
+
         for(var i = 0;i<minlength;i++){
             if(propPathArr0[i] == propPathArr1[i]){
-                if((propPathArr0[i].name == "Contents"||propPathArr0[i].name == "内容") && (propPathArr1[i].name == "Contents"||propPathArr1[i].name == "内容")){
+                if((propPathArr0[i].name == "Contents" || propPathArr0[i].name == "内容" ) && (propPathArr1[i].name == "Contents" || propPathArr1[i].name == "内容" )){
                     last_is_Contents = 1;
                 }else{
                     last_is_Contents = 0;
@@ -115,14 +137,13 @@ function main() {
         //     alstr += propPathArr1[i].name;
         // }
         // alert(alstr);
-
         // 表达式字符串生成
         var pgroup = propPathArr0.length;
         var expstr = "thisProperty.propertyGroup(" + pgroup + ").";
         last_is_Contents = 0;
-    
+
         for(var i = 0;i<propPathArr1.length;i++){
-            if(propPathArr1[i].name == "Contents"||propPathArr1[i].name == "内容"){
+            if(propPathArr1[i].name == "Contents" || propPathArr1[i].name == "内容"){
                 expstr += "content(\"";
                 last_is_Contents = 1;
                 continue;
@@ -147,7 +168,6 @@ function main() {
         }
         lastExp = expstr;
     }
-
     this.buildUI = function (thisObj)
     {
         // dockable panel or palette
@@ -184,18 +204,15 @@ function main() {
         {
             this.layout.resize();
         };
-
         // Apply
         pal.gr.gr3.ApplyBtn.onClick = function () 
         {
             app.beginUndoGroup(scriptName);
             var slayers = app.project.activeItem.selectedLayers;
             var cut = app.project.activeItem.time;
-
             if(val instanceof Array){
                 var nval = "[" + val.toString() + "]";  
             }else{var nval = val ;}
-
             eval(
                 "for(var i = 0;i<slayers.length;i++){ \
                     if(slayers[i] " + propPath + ".canSetExpression){ \
@@ -214,7 +231,6 @@ function main() {
             );
             app.endUndoGroup;
         };
-
         // Select
         pal.gr.gr3.SelectBtn.onClick = function () 
         {
@@ -222,13 +238,11 @@ function main() {
             var thisComp = app.project.activeItem;
             var secL = thisComp.selectedLayers;
             var secP = thisComp.selectedProperties;
-
             if(secP.length!=0){
                 for(var i = 0;i<secP.length;i++){
                     secP[i].selected = 0;
                 }
             }
-
             eval(
                 "for(var i = 0;i<secL.length;i++){ \
                 try{\
@@ -238,7 +252,6 @@ function main() {
             );
             app.endUndoGroup;
         };
-
         // Extract
         pal.gr.gr3.ExtractBtn.onClick = function () 
         {
@@ -246,10 +259,8 @@ function main() {
             var thisComp = app.project.activeItem;
             var secP = thisComp.selectedProperties;
             var secL = thisComp.selectedLayers;
-
             var pathstr = "";
             var thisP;
-
             // 找到可以打表达式的属性
             for(var i=0;i<secP.length;i++)
             {
@@ -269,28 +280,18 @@ function main() {
             propPath = pathstr;
             
             var cut = app.project.activeItem.time;
-
             pal.gr.gr1.pathEt.text = pathstr;
             pal.gr.gr2.valueEt.text = val;
-
             pal.gr.gr5.expEt.text = thisP.expression;
             exp = "'" + thisP.expression + "'";
-
             app.endUndoGroup;
         };
-
         // Shape Exp
         pal.gr.gr3.shapeExpBtn.onClick = function () 
         {
             app.beginUndoGroup(scriptName);
-            var thisComp = app.project.activeItem;
-            var secP = thisComp.selectedProperties;
-    
-            secP[revBox^expReverseInvert].expression = expslice(secP[revBox^expReverseInvert].expression,lastExp);
-            relaPathExp(!revBox^expReverseInvert,0);
-    
+            relaPathExp(1^expReverseInvert,0);
             expReverseInvert = !expReverseInvert;
-    
             app.endUndoGroup;
         }
 
@@ -299,7 +300,6 @@ function main() {
         {
             propPath = this.text;
         }
-
         // valueEt
         pal.gr.gr2.valueEt.onChange = function () 
         {
@@ -311,31 +311,25 @@ function main() {
                 val = parseFloat(this.text);
             }
         }
-
         pal.gr.gr5.expEt.onChange = function () 
         {
             exp = this.text;
         }
-
         // pal.gr.gr2.labelSlider.onChange = pal.gr.gr2.labelSlider.onChanging = function () 
         // {
         //     this.value = Math.round(this.value);
         //     this.parent.labelEt.text = this.value;
         //     la = this.value;
         // };
-
         // box
-
         pal.gr.gr2.valueBox.onClick = function () 
         {
             valueBox = this.value;
         }
-
         pal.gr.gr4.expBox.onClick = function () 
         {
             expBox = this.value;
         }
-
         // show user interface
         if (pal instanceof Window)
         {
@@ -352,5 +346,4 @@ function main() {
             this.buildUI(thisObj);
     };
 }
-
 new main().run(this)

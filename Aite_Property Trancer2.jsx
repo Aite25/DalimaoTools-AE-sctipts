@@ -216,22 +216,33 @@ function main() {
             if(val instanceof Array){
                 var nval = "[" + val.toString() + "]";  
             }else{var nval = val ;}
-            eval(
-                "for(var i = 0;i<slayers.length;i++){ \
-                    if(slayers[i] " + propPath + ".canSetExpression){ \
-                        if(valueBox == 1){ \
-                            if(slayers[i]  " + propPath + ".numKeys == 0){ \
-                                slayers[i]  " + propPath + " .setValue(  " + nval + "  ) ; \
-                            }else{\
-                                slayers[i]  " + propPath + " .setValueAtTime( " + cut + " ," + nval + "  ) ;\
+            // change the value
+            if(valueBox == 1){
+                eval(
+                    "\
+                    for(var i = 0;i<slayers.length;i++){ \
+                        try{\
+                            if(slayers[i] " + propPath + ".canSetExpression){ \
+                                if(slayers[i]  " + propPath + ".numKeys == 0){ \
+                                    slayers[i]  " + propPath + " .setValue(  " + nval + "  ) ; \
+                                }else{\
+                                    slayers[i]  " + propPath + " .setValueAtTime( " + cut + " ," + nval + "  ) ;\
+                                } \
                             } \
-                        } \
-                        if(expBox == 1){ \
+                        }catch(e){continue;}\
+                    }"
+                );
+            }
+            // expression
+            if(expBox == 1){
+                eval("\
+                    for(var i = 0;i<slayers.length;i++){ \
+                        try{\
                             slayers[i] " + propPath + " .expression = \'" + exp.toString() + "\'; \
-                        } \
+                        }catch(e){continue;}\
                     } \
-                }"
-            );
+                ")
+            }
             app.endUndoGroup;
         };
         // Select
@@ -255,6 +266,7 @@ function main() {
             );
             app.endUndoGroup;
         };
+
         // Extract
         pal.gr.gr3.ExtractBtn.onClick = function () 
         {
@@ -316,25 +328,33 @@ function main() {
             if(val instanceof Array){
                 var nval = "[" + val.toString() + "]";  
             }else{var nval = val ;}
-            eval(
-                "for(var i = 0;i<secP.length;i++){ \
-                    if(secP[i] " + propPath + ".canSetExpression){ \
-                        if(valueBox == 1){ \
-                            if(secP[i]  " + propPath + ".numKeys == 0){ \
-                                secP[i]  " + propPath + " .setValue(  " + nval + "  ) ; \
-                            }else{\
-                                secP[i]  " + propPath + " .setValueAtTime( " + cut + " ," + nval + "  ) ;\
-                            } \
-                        } \
-                        try{\
-                            if(expBox == 1){ \
-                                secP[i] " + propPath + " .expression = \'" + exp.toString() + "\'; \
+            // change the value
+            if(valueBox == 1){
+                eval(
+                    "for(var i = 0;i<secP.length;i++){ \
+                        try{ \
+                            if(secP[i] " + propPath + ".canSetExpression){ \
+                                if(secP[i]  " + propPath + ".numKeys == 0){ \
+                                    secP[i]  " + propPath + " .setValue(  " + nval + "  ) ; \
+                                }else{\
+                                    secP[i]  " + propPath + " .setValueAtTime( " + cut + " ," + nval + "  ) ;\
+                                } \
                             } \
                         }catch(e){continue;}\
-                    } \
-                }"
-            );
-            app.endUndoGroup;
+                    }"
+                );
+            }
+            // expression
+            if(expBox == 1){
+                eval("\
+                    for(var i = 0;i<secP.length;i++){ \
+                        try{ \
+                            secP[i] " + propPath + " .expression = \'" + exp.toString() + "\'; \
+                        }catch(e){continue;}\
+                    }\
+                ");
+            }
+
         };
         // propSelect
         pal.gr.gr4.propSelectBtn.onClick = function () 
@@ -350,8 +370,8 @@ function main() {
                     secP[i].selected = 0;\
                 }\
                 for(var i = 0;i<secPc.length;i++){ \
-                try{\
-                    secPc[i]" + propPath + ".selected = 1; \
+                    try{\
+                        secPc[i]" + propPath + ".selected = 1; \
                     }catch(e){continue;}\
                 }"
             );
@@ -366,8 +386,8 @@ function main() {
             var secP = thisComp.selectedProperties;
             eval(
                 "for(var i = 0;i<secP.length;i++){ \
-                try{\
-                    secP[i]" + propPath + ".addProperty(\"" + val + "\"); \
+                    try{\
+                        secP[i]" + propPath + ".addProperty(\"" + val + "\"); \
                     }catch(e){continue;}\
                 }"
             );
@@ -384,7 +404,8 @@ function main() {
         {
             if(/,/.test(this.text))
             {
-                val = this.text.split(",")
+                val = this.text.split(",");
+
             }else{
                 this.text = eval(this.text);
                 val = parseFloat(this.text);

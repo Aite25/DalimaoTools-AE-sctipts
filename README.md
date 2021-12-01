@@ -10,7 +10,7 @@ AE scripts for simple works
 各脚本功能：
 
 **CompKeys Output：**
-输出关键帧字符串
+ - 把关键帧转化为字符串输出
 
 **inOuts：**
  - 图层长度调整相关，按左到右、上到下的顺序介绍
@@ -27,7 +27,7 @@ AE scripts for simple works
  - 创建ID滑块，以最后一个选择的图层为控制层
 
 **Marker Baker：**
-图层、合成标记与关键帧之间的转换
+ - 图层、合成标记与关键帧之间的转换
 
 **Position Offset：**
  - 简单的批量移动k帧

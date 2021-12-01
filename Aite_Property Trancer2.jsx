@@ -3,7 +3,7 @@ function main() {
     var scriptName = "PropertyTracer by 大狸猫";
     var alertTitle = "大狸猫提示你：";
     this.scriptTitle = "PropertyTracer by 大狸猫";
-    var propPath = '(\"ADBE Text Opacity\")';
+    var propPath = '("Transform")("Opacity")';
     var val = 0;
     var exp = "'value'";
     var expBox = 1;
@@ -326,9 +326,11 @@ function main() {
                                 secP[i]  " + propPath + " .setValueAtTime( " + cut + " ," + nval + "  ) ;\
                             } \
                         } \
-                        if(expBox == 1){ \
-                            secP[i] " + propPath + " .expression = \'" + exp.toString() + "\'; \
-                        } \
+                        try{\
+                            if(expBox == 1){ \
+                                secP[i] " + propPath + " .expression = \'" + exp.toString() + "\'; \
+                            } \
+                        }catch(e){continue;}\
                     } \
                 }"
             );
@@ -342,9 +344,14 @@ function main() {
             var secL = thisComp.selectedLayers;
             var secP = thisComp.selectedProperties;
             eval(
-                "for(var i = 0;i<secP.length;i++){ \
+                "var secPc = [];\
+                for(var i = 0;i<secP.length;i++){ \
+                    secPc.push(secP[i])\
+                    secP[i].selected = 0;\
+                }\
+                for(var i = 0;i<secPc.length;i++){ \
                 try{\
-                    secP[i]" + propPath + ".selected = 1; \
+                    secPc[i]" + propPath + ".selected = 1; \
                     }catch(e){continue;}\
                 }"
             );

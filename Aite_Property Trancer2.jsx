@@ -192,6 +192,9 @@ function main() {
             }, \
             gr4: Group { orientation:'row', alignment:['fill','top'], \
                 expBox: Checkbox { text:'Expression',value:"+expBox+",alignment:['left','top']}    \
+                propApplyBtn: Button { text:'P_Apply', preferredSize:[60,20],alignment:['right','top'] } \
+                propSelectBtn: Button { text:'P_Select', preferredSize:[60,20],alignment:['right','top'] } \
+                propAddBtn: Button { text:'P_Add', preferredSize:[60,20],alignment:['right','top'] } \
             }, \
             gr5: Group { orientation:'row', alignment:['fill','fill'], \
                 expEt: EditText { text:'value',alignment:['fill','fill'] ,preferredSize:[300,300] ,properties: { multiline: true }} \
@@ -267,7 +270,12 @@ function main() {
                 if(secP[i].canSetExpression){thisP = secP[i];break}
                 if(i == secP.length-1){thisP = secP[i];}
             }
-            val = thisP.value;
+            if(thisP == undefined){thisP = secP[0];}
+            if(thisP.value != undefined){
+                val = thisP.value;
+            }else{
+                val = thisP.matchName;
+            }
             var depth = thisP.propertyDepth;
             var curP = thisP;
             
@@ -298,6 +306,66 @@ function main() {
             expReverseInvert = !expReverseInvert;
             app.endUndoGroup;
         }
+
+        // propApply
+        pal.gr.gr4.propApplyBtn.onClick = function () 
+        {
+            app.beginUndoGroup(scriptName);
+            var secP = app.project.activeItem.selectedProperties;
+            var cut = app.project.activeItem.time;
+            if(val instanceof Array){
+                var nval = "[" + val.toString() + "]";  
+            }else{var nval = val ;}
+            eval(
+                "for(var i = 0;i<secP.length;i++){ \
+                    if(secP[i] " + propPath + ".canSetExpression){ \
+                        if(valueBox == 1){ \
+                            if(secP[i]  " + propPath + ".numKeys == 0){ \
+                                secP[i]  " + propPath + " .setValue(  " + nval + "  ) ; \
+                            }else{\
+                                secP[i]  " + propPath + " .setValueAtTime( " + cut + " ," + nval + "  ) ;\
+                            } \
+                        } \
+                        if(expBox == 1){ \
+                            secP[i] " + propPath + " .expression = \'" + exp.toString() + "\'; \
+                        } \
+                    } \
+                }"
+            );
+            app.endUndoGroup;
+        };
+        // propSelect
+        pal.gr.gr4.propSelectBtn.onClick = function () 
+        {
+            app.beginUndoGroup(scriptName);
+            var thisComp = app.project.activeItem;
+            var secL = thisComp.selectedLayers;
+            var secP = thisComp.selectedProperties;
+            eval(
+                "for(var i = 0;i<secP.length;i++){ \
+                try{\
+                    secP[i]" + propPath + ".selected = 1; \
+                    }catch(e){continue;}\
+                }"
+            );
+            app.endUndoGroup;
+        };
+
+        // propAdd
+        pal.gr.gr4.propAddBtn.onClick = function () 
+        {
+            app.beginUndoGroup(scriptName);
+            var thisComp = app.project.activeItem;
+            var secP = thisComp.selectedProperties;
+            eval(
+                "for(var i = 0;i<secP.length;i++){ \
+                try{\
+                    secP[i]" + propPath + ".addProperty(\"" + val + "\"); \
+                    }catch(e){continue;}\
+                }"
+            );
+            app.endUndoGroup;
+        };
 
         // pathEt
         pal.gr.gr1.pathEt.onChange = function () 

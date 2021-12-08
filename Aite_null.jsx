@@ -4,7 +4,7 @@ function main() {
     var alertTitle = "大狸猫提示你：";
     this.scriptTitle = "Null by 大狸猫";
 
-    var guideBox = 1;
+    var guideBox = 0;
     var eachBox = 0;
     var setParentBox = 0;
 

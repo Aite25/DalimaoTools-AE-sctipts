@@ -60,8 +60,16 @@ function main() {
                 revSelectBtn: Button { text:'revSel',alignment:['left','top'], preferredSize:[40,20] } \
                 ExtractNameBtn: Button { text:'Extract',alignment:['left','top'], preferredSize:[80,20] } \
             }, \
+            gr4: Group { \
+                ApplyPropBtn: Button { text:'P_Apply',alignment:['left','top'], preferredSize:[80,20] } \
+                SelectPropBtn: Button { text:'P_Select',alignment:['left','top'], preferredSize:[90,20] } \
+                ExtractPropNameBtn: Button { text:'P_Extract',alignment:['left','top'], preferredSize:[80,20] } \
+            }, \
         }"; 
         pal.gr = pal.add(res);
+        var ApplyPropBtn = pal.gr.gr4.ApplyPropBtn;
+        var SelectPropBtn = pal.gr.gr4.SelectPropBtn;
+        var ExtractPropNameBtn = pal.gr.gr4.ExtractPropNameBtn;
         
         // event callbacks
         pal.onResizing = pal.onResize = function () 
@@ -130,6 +138,66 @@ function main() {
             app.endUndoGroup;
         };
 
+        //Porp apply
+        ApplyPropBtn.onClick = function () 
+        {
+            app.beginUndoGroup(scriptName);
+            var thisComp = app.project.activeItem;
+            var secP = thisComp.selectedProperties;
+
+
+            for(var i=0;i<secP.length;i++)
+            {
+                if(!zeroBox){
+                    try{
+                        secP[i].name = pal.gr.gr1.nameEt.text + " " + (i+1).toString();
+                    }catch(e){continue;}
+                }else{
+                    try{
+                        secP[i].name = pal.gr.gr1.nameEt.text + " " + (i+startnum).toString();
+                    }catch(e){continue;}
+                }
+
+            }
+
+            app.endUndoGroup;
+        };
+
+        //Prop_selctect
+        SelectPropBtn.onClick = function () 
+        {
+            app.beginUndoGroup(scriptName);
+            var thisComp = app.project.activeItem;
+            var secP = thisComp.selectedProperties;
+            for(var i = 0;i<=secP.length;i++){
+                var curP = secP[i];
+                if(regexp != 1){
+                    if(curP.name.indexOf(na) == -1){
+                        curP.selected = 0;
+                    }
+                    // var reg = new RegExp("^"+na+".*(\d+)*$","g");
+                }else if(regexp == 1){
+                    var reg = new RegExp(na,"g");
+                    curP.selected = !(reg.test(curP.name));
+                }
+            }
+
+            app.endUndoGroup;
+        };
+
+        // PropExtract
+        ExtractPropNameBtn.onClick = function () 
+        {
+            app.beginUndoGroup(scriptName);
+            var thisComp = app.project.activeItem;
+            var secP = thisComp.selectedProperties;
+            na = secP[0].name.replace(/(\s*\d+)$/,"");
+            pal.gr.gr1.nameEt.text = na;
+
+            app.endUndoGroup;
+        };
+
+        // edit text
         pal.gr.gr1.nameEt.onChange = function () 
         {
             na = this.text;
@@ -157,6 +225,7 @@ function main() {
             startnum = parseInt(this.text);
         }
 
+        // slider
         pal.gr.gr2.labelSlider.onChange = pal.gr.gr2.labelSlider.onChanging = function () 
         {
             this.value = Math.round(this.value);

@@ -10,6 +10,7 @@ function main() {
     var regexp = 0;
     var zeroBox = 0;
     var startnum = 0;
+    var revBox = 0;
 
     function printObj (obj){
         var str = "";
@@ -62,14 +63,17 @@ function main() {
             }, \
             gr4: Group { \
                 ApplyPropBtn: Button { text:'P_Apply',alignment:['left','top'], preferredSize:[80,20] } \
-                SelectPropBtn: Button { text:'P_Select',alignment:['left','top'], preferredSize:[90,20] } \
+                SelectPropBtn: Button { text:'P_Sel',alignment:['left','top'], preferredSize:[40,20] } \
+                revBox: Checkbox { text:'reP',preferredSize:[40,17],value:"+revBox+"}    \
                 ExtractPropNameBtn: Button { text:'P_Extract',alignment:['left','top'], preferredSize:[80,20] } \
             }, \
         }"; 
         pal.gr = pal.add(res);
         var ApplyPropBtn = pal.gr.gr4.ApplyPropBtn;
         var SelectPropBtn = pal.gr.gr4.SelectPropBtn;
+        var revPropSelectBtn = pal.gr.gr4.revPropSelectBtn;
         var ExtractPropNameBtn = pal.gr.gr4.ExtractPropNameBtn;
+        var revBox_ = pal.gr.gr4.revBox;
         
         // event callbacks
         pal.onResizing = pal.onResize = function () 
@@ -150,11 +154,19 @@ function main() {
             {
                 if(!zeroBox){
                     try{
-                        secP[i].name = pal.gr.gr1.nameEt.text + " " + (i+1).toString();
+                        if(revBox == 0){
+                            secP[i].name = pal.gr.gr1.nameEt.text + " " + (i+1).toString();
+                        }else{
+                            secP[i].name = pal.gr.gr1.nameEt.text + " " + (secP.length-i).toString();
+                        }
                     }catch(e){continue;}
                 }else{
                     try{
-                        secP[i].name = pal.gr.gr1.nameEt.text + " " + (i+startnum).toString();
+                        if(revBox == 0){
+                            secP[i].name = pal.gr.gr1.nameEt.text + " " + (i+startnum).toString();
+                        }else{
+                            secP[i].name = pal.gr.gr1.nameEt.text + " " + (secP.length-i+startnum-1).toString();
+                        }
                     }catch(e){continue;}
                 }
 
@@ -249,6 +261,11 @@ function main() {
             }
             na = pal.gr.gr1.nameEt.text;
             regexp = this.value;
+        }
+
+        revBox_.onClick = function () 
+        {
+            revBox = this.value;
         }
 
         pal.gr.gr2.labelBox.onClick = function () 

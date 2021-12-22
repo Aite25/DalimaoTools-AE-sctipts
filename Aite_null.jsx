@@ -21,8 +21,8 @@ function main() {
         // Add shape
         var shape = thisComp.layers.addShape();
         
-        var num = shape.name[shape.name.length-1];
-        shape.name = "S_NULL " + num;
+        // var num = parseInt(shape.name[shape.name.length-1]);
+        // shape.name = "S_NULL " + num;
         shape.label = 9;
         var sgroup1 = shape("ADBE Root Vectors Group").addProperty("ADBE Vector Group");
         sgroup1.name = "Retangle 1";
@@ -250,10 +250,14 @@ function main() {
             // none selected layers
             if(secL.length == 0){
                 nullL = addShapeNull();
+                var num = parseInt(nullL.name.slice(-1));
+                nullL.name = "S_NULL " + num;
                 nullLarr.push(nullL);
             }else if(secL.length == 1){
                 // one selected layer
                 nullL = addShapeNull();
+                // var num = parseInt(nullL.name.slice(-1));
+                // nullL.name = "S_NULL " + num;
                 nullL.moveBefore(secL[0]);
                 if(secL[0].parent == null){
                     nullL.position.setValue(secL[0].position.value);
@@ -328,9 +332,10 @@ function main() {
                 }
             }
 
-            
-            // guide box & select the created null
+            // change the name & guide box & select the created null
             for(var i =0;i<nullLarr.length;i++){
+                var nullnamenum = nullLarr[i].name.match(/\d+$/);
+                nullLarr[i].name = 'S_NULL '+ nullnamenum.toString();
                 if(guideBox==1){
                     nullLarr[i].guideLayer = 1;
                     nullLarr[i]("ADBE Root Vectors Group")("ADBE Vector Group")("ADBE Vectors Group")("ADBE Vector Graphic - Stroke").enabled = 1;

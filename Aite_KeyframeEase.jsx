@@ -399,9 +399,9 @@ function main() {
             inUI = false;
         }
 
-        pal.addEventListener('mouseover', inside);
-        pal.addEventListener('mouseout', outside);
-        pal.addEventListener('keydown', alertKey);
+        // pal.addEventListener('mouseover', inside);
+        // pal.addEventListener('mouseout', outside);
+        // pal.addEventListener('keydown', alertKey);
         function alertKey() {
             var myKeyState = ScriptUI.environment.keyboardState;
             if(myKeyState.altKey){alert("摸鱼time","大狸猫提示你：");}

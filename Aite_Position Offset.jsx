@@ -40,8 +40,9 @@ function main() {
                 directionBox: Checkbox { text:'→',preferredSize:[60,17],value:1}    \
             }, \
             gr4: Group { orientation:'row', alignment:['fill','fill'], \
-                extractBtn: Button { text:'Extract',alignment:['left','top'], preferredSize:[210,20] }    \
-                resetBtn: Button { text:'Reset',alignment:['left','top'], preferredSize:[130,20] }    \
+                extractBtn: Button { text:'Extract',alignment:['left','top'], preferredSize:[210,17] }    \
+                transformBtn: Button { text:'Effect',alignment:['left','top'], preferredSize:[70,17] }    \
+                resetBtn: Button { text:'Reset',alignment:['left','top'], preferredSize:[50,17] }    \
             }, \
         }"; 
         pal.gr = pal.add(res);
@@ -100,7 +101,7 @@ function main() {
             this.parent.distanceEt.text = this.value;  
             distance = this.value;
         };
-            // exp
+            // expression
         pal.gr.gr3.expressionBtn.onClick = function () 
         {
             app.beginUndoGroup(scriptName);
@@ -235,6 +236,55 @@ function main() {
             pal.gr.gr3.frameSlider.value = parseInt(fDuration);
             app.endUndoGroup;
         }
+
+            // transformEff
+        pal.gr.gr4.transformBtn.onClick = function () 
+        {
+            app.beginUndoGroup(scriptName);
+            
+            var selectedLayers = app.project.activeItem.selectedLayers;
+            var curComp = app.project.activeItem;
+            var angR = (angle+90)*Math.PI/180;
+            var offset = [Math.round(Math.cos(angR)*distance),Math.round(Math.sin(angR)*distance),0]
+            var transeff;
+            for(var i = 0;i<selectedLayers.length;i++){
+                if(selectedLayers[i].Effects.property("Transform") == null){
+                    transeff = selectedLayers[i].Effects.addProperty("ADBE Geometry2");
+                    transeff.property(1).setValue([0,0]);
+                    transeff.property(2).setValue([0,0]);
+                }else{
+                    transeff = selectedLayers[i].Effects.property("Transform");
+                }
+                var origin = [0,0];
+                if(keyB == 1){//.frameDuration
+                    var dire = directionB*2-1;
+                    var timeDelta = (frames*curComp.frameDuration)*dire;
+                    var easeIn = new KeyframeEase(0, 100);
+                    var easeOut = new KeyframeEase(0, 0.1);
+
+                    var keyAI = transeff.property(2).addKey(curComp.time);
+                    transeff.property(2).setTemporalEaseAtKey(keyAI,[easeIn],[easeOut]);
+
+                    var keyBI = transeff.property(2).addKey(curComp.time+timeDelta);
+                    transeff.property(2).setTemporalEaseAtKey(keyBI,[easeIn],[easeOut]);
+
+                    transeff.property(2).setValueAtTime(curComp.time+timeDelta*!directionB,[offset[0],offset[1]]);
+                    transeff.property(2).setValueAtTime(curComp.time+timeDelta*directionB,[0,0]);
+
+                    if(opacityB == 1){
+                        var keyAI = transeff.property(9).addKey(curComp.time);
+                        var keyBI = transeff.property(9).addKey(curComp.time+timeDelta);
+                        transeff.property(9).setValueAtTime(curComp.time+(frames*curComp.frameDuration)*(-!directionB),0);
+                    }
+                }else{
+                    transeff.property(2).setValue([offset[0],offset[1]]);
+                }
+            }
+
+            app.endUndoGroup;
+        };
+
+
             // reset
         pal.gr.gr4.resetBtn.onClick = function () 
         {

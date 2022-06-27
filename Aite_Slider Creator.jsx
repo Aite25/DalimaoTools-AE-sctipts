@@ -28,22 +28,22 @@ function main() {
                 createBtn: Button { text:'Create & Exp',alignment:['left','top'], preferredSize:[80,20] } \
                 oneBox: Checkbox { text:'1 width',preferredSize:[60,17],value:"+oneBox+"}    \
             }, \
-            gr2: Group { \
+            gr2: Group {  alignment:['fill','top'],\
                 onlyCreateBtn: Button { text:'Only Create',alignment:['left','top'], preferredSize:[80,20] } \
-                typeSlider: Slider { alignment:['left','center'], preferredSize:[60,17],minvalue:0 ,maxvalue:6,value:" + slidertype + " } \
-                typeEt:EditText { text:'" + parseInt(slidertype+1) + "',alignment:['left','top'] ,preferredSize:[25,20]} \
-                typeSt: StaticText { text:'" + typeArr[0].toString().slice(5) + "',alignment:['left','center'], preferredSize:[95,17] } \
-                crossSt: StaticText { text:'×',alignment:['left','center'], preferredSize:[17,17] } \
-                countSlider: Slider { alignment:['left','center'], preferredSize:[25,17],minvalue:1 ,maxvalue:10,value:" + sliderCount + " } \
-                countEt:EditText { text:'" + sliderCount + "',alignment:['left','top'] ,preferredSize:[25,20]} \
+                typeSlider: Slider { alignment:['fill','center'], preferredSize:[20,17],minvalue:0 ,maxvalue:6,value:" + slidertype + " } \
+                typeEt:EditText { text:'" + parseInt(slidertype+1) + "',alignment:['right','top'] ,preferredSize:[25,20]} \
+                typeSt: StaticText { text:'" + typeArr[0].toString().slice(5) + "',alignment:['left','top'], preferredSize:[95,17] } \
+                crossSt: StaticText { text:'×',alignment:['left','top'], preferredSize:[17,17] } \
+                countSlider: Slider { alignment:['fill','top'], preferredSize:[20,17],minvalue:1 ,maxvalue:10,value:" + sliderCount + " } \
+                countEt:EditText { text:'" + sliderCount + "',alignment:['right','top'] ,preferredSize:[25,20]} \
             }, \
             gr4: Group { orientation:'row', alignment:['fill','fill'], \
-                thisLayerSt: StaticText { text:'thisLayer',alignment:['left','top'],preferredSize:[60,25] }    \
-                thisLayerEt: EditText { text:'effect',alignment:['fill','fill'] ,preferredSize:[300,25] ,properties: { multiline: true }} \
+                thisLayerSt: StaticText { text:'thisLayer',alignment:['left','top'],preferredSize:[60,20] }    \
+                thisLayerEt: EditText { text:'effect',alignment:['fill','fill'] ,preferredSize:[300,20] ,properties: { multiline: true }} \
             }, \
             gr5: Group { orientation:'row', alignment:['fill','fill'], \
-                otherLayerSt: StaticText { text:'otherLayer',alignment:['left','top'],preferredSize:[60,25] }    \
-                otherLayerEt: EditText { text:'thisComp.layer',alignment:['fill','fill'] ,preferredSize:[300,25] ,properties: { multiline: true }} \
+                otherLayerSt: StaticText { text:'otherLayer',alignment:['left','top'],preferredSize:[60,20] }    \
+                otherLayerEt: EditText { text:'thisComp.layer',alignment:['fill','fill'] ,preferredSize:[300,20] ,properties: { multiline: true }} \
             }, \
         }"; 
         pal.gr = pal.add(res);
@@ -211,6 +211,7 @@ function main() {
                 this.text = 1;
             }
             this.parent.typeSlider.value = parseInt(this.text)-1;  
+            this.parent.typeSt.text = typeArr[parseInt(this.text)-1].toString().slice(5);
             slidertype = parseInt(this.text)-1;
         };
 

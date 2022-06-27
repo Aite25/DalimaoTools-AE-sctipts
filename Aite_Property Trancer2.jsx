@@ -167,6 +167,7 @@ function main() {
             finProp.expression += expstr;
         }
         lastExp = expstr;
+        exp = lastExp;
     }
     this.buildUI = function (thisObj)
     {
@@ -315,6 +316,7 @@ function main() {
         {
             app.beginUndoGroup(scriptName);
             relaPathExp(1^expReverseInvert,0);
+            pal.gr.gr5.expEt.text = exp;
             expReverseInvert = !expReverseInvert;
             app.endUndoGroup;
         }

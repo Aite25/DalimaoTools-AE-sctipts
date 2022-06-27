@@ -6,7 +6,10 @@ function main() {
 
     var sliderCount = 1;
     var oneBox = 0;
+    var allBox = 1;
+    var nameBox = 0;
     var slidertype = 0;
+    var sliderName = 'Dalimao';
     var typeArr = ["ADBE Slider Control","ADBE Point Control","ADBE Point3D Control","ADBE Color Control","ADBE Angle Control","ADBE Checkbox Control","ADBE Layer Control"];
 
     Property.prototype.contaningLayer = function(){
@@ -27,6 +30,7 @@ function main() {
             gr1: Group { \
                 createBtn: Button { text:'Create & Exp',alignment:['left','top'], preferredSize:[80,20] } \
                 oneBox: Checkbox { text:'1 width',preferredSize:[60,17],value:"+oneBox+"}    \
+                allBox: Checkbox { text:'x y z = a',preferredSize:[80,17],value:"+allBox+"}    \
             }, \
             gr2: Group {  alignment:['fill','top'],\
                 onlyCreateBtn: Button { text:'Only Create',alignment:['left','top'], preferredSize:[80,20] } \
@@ -37,25 +41,36 @@ function main() {
                 countSlider: Slider { alignment:['fill','top'], preferredSize:[20,17],minvalue:1 ,maxvalue:10,value:" + sliderCount + " } \
                 countEt:EditText { text:'" + sliderCount + "',alignment:['right','top'] ,preferredSize:[25,20]} \
             }, \
+            gr3: Group { orientation:'row', alignment:['fill','top'], \
+                nameBox: Checkbox { text:'Rename',preferredSize:[70,17],value:"+ nameBox +"}    \
+                sliderNameEt: EditText { text:'" + sliderName + "',alignment:['fill','center'] ,preferredSize:[300,20] ,properties: { multiline: false }} \
+            }, \
             gr4: Group { orientation:'row', alignment:['fill','fill'], \
-                thisLayerSt: StaticText { text:'thisLayer',alignment:['left','top'],preferredSize:[60,20] }    \
+                thisLayerSt: StaticText { text:'thisLayer',alignment:['left','top'],preferredSize:[70,20] }    \
                 thisLayerEt: EditText { text:'effect',alignment:['fill','fill'] ,preferredSize:[300,20] ,properties: { multiline: true }} \
             }, \
             gr5: Group { orientation:'row', alignment:['fill','fill'], \
-                otherLayerSt: StaticText { text:'otherLayer',alignment:['left','top'],preferredSize:[60,20] }    \
+                otherLayerSt: StaticText { text:'otherLayer',alignment:['left','top'],preferredSize:[70,20] }    \
                 otherLayerEt: EditText { text:'thisComp.layer',alignment:['fill','fill'] ,preferredSize:[300,20] ,properties: { multiline: true }} \
             }, \
         }"; 
         pal.gr = pal.add(res);
 
+        //gr1
         var createBtn = pal.gr.gr1.createBtn;
         var oneBox_ = pal.gr.gr1.oneBox;
+        var allBox_ = pal.gr.gr1.allBox;
+        //gr2
         var typeSlider = pal.gr.gr2.typeSlider;
-        var countSlider = pal.gr.gr2.countSlider;
         var onlyCreateBtn = pal.gr.gr2.onlyCreateBtn;
         var typeEt = pal.gr.gr2.typeEt;
-        var countEt = pal.gr.gr2.countEt;
         var typeSt = pal.gr.gr2.typeSt;
+        var countSlider = pal.gr.gr2.countSlider;
+        var countEt = pal.gr.gr2.countEt;
+        //gr3
+        var nameBox_ = pal.gr.gr3.nameBox;
+        var sliderNameEt = pal.gr.gr3.sliderNameEt;
+        //gr4&5
         var thisLayerEt = pal.gr.gr4.thisLayerEt;
         var otherLayerEt = pal.gr.gr5.otherLayerEt;
         
@@ -95,26 +110,44 @@ function main() {
                             valuewidth = secP[j].value.length;
                         }
 
-                        if(oneBox_ == 1){//只加一个滑块
+                        if(oneBox == 1){//只加一个滑块
                             eff = cursecL.Effects.addProperty(typeArr[0]);
-                            eff.name = secP[j].name;//改名
+                            try{
+                                if(nameBox == 0){
+                                    eff.name = secP[j].name;//改名
+                                }else{eff.name = sliderName;}
+                            }catch(e){}
                             eff(1).setValue(secP[j].value[0]);
                             secP[j].expression = 'sld = effect("' + eff.name + '")("' + eff(1).name + '");';
-                            if(valuewidth == 1){
-                                secP[j].expression += '';
-                            }else if(valuewidth == 2){
-                                secP[j].expression += '\nx = sld;\ny = 0;\n[x,y]';
-                            }else if(valuewidth == 3){
-                                secP[j].expression += '\nx = sld;\ny = 0;z = 0;\n[x,y,z]';
-                            }else if(valuewidth == 4){
-                                secP[j].expression += '\nx = sld;\nyg = 0;b = 0;\na = 1;\n[r,g,b,a]';
+                            if(allBox == 0){
+                                if(valuewidth == 1){
+                                    secP[j].expression += '';
+                                }else if(valuewidth == 2){
+                                    secP[j].expression += '\nx = sld;\ny = 0;\n[x,y]';
+                                }else if(valuewidth == 3){
+                                    secP[j].expression += '\nx = sld;\ny = 0;z = 0;\n[x,y,z]';
+                                }else if(valuewidth == 4){
+                                    secP[j].expression += '\nx = sld;\nyg = 0;b = 0;\na = 1;\n[r,g,b,a]';
+                                }
+                            }else{
+                                if(valuewidth == 1){
+                                    secP[j].expression += '';
+                                }else if(valuewidth == 2){
+                                    secP[j].expression += '\nx = sld;\ny = sld;\n[x,y]';
+                                }else if(valuewidth == 3){
+                                    secP[j].expression += '\nx = sld;\ny = sld;z = sld;\n[x,y,z]';
+                                }else if(valuewidth == 4){
+                                    secP[j].expression += '\nx = sld;\nyg = sld;b = sld;\na = 1;\n[r,g,b,a]';
+                                }
                             }
                             thisLayerEt.text += 'effect("' + eff.name + '")("' + eff(1).name + '");\n';
                             otherLayerEt.text += 'thisComp.layer("' + cursecL.name + '").effect("' + eff.name + '")("' + eff(1).name + '");\n';
                         }else{
                             eff = cursecL.Effects.addProperty(typeArr[valuewidth-1]);
                             try{
-                                eff.name = secP[j].name;//改名
+                                if(nameBox == 0){
+                                    eff.name = secP[j].name;//改名
+                                }else{eff.name = sliderName;}
                             }catch(e){}
                             
                             //Et表达式中新加滑块的路径
@@ -156,7 +189,11 @@ function main() {
                         var eff;
                         for(var k = 0;k<sliderCount;k++){
                             eff = cursecL.Effects.addProperty(typeArr[slidertype]);
-                            eff.name = secP[j].name;//改名
+                            try{
+                                if(nameBox == 0){
+                                    eff.name = secP[j].name;//改名
+                                }else{eff.name = sliderName;}
+                            }catch(e){}
                             eff.name += " " + parseInt(k+1).toString();
                             //创建滑块维度相等则给滑块赋值
                             if(slidertype == valuewidth || (valuewidth == 1 && slidertype == 4)){
@@ -173,6 +210,7 @@ function main() {
                 {
                     for(var k = 0;k<sliderCount;k++){
                         var eff = secL[i].Effects.addProperty(typeArr[slidertype]);
+                        if(nameBox == 1){eff.name = sliderName;}
                         eff.name += " " + parseInt(k+1).toString();
                         thisLayerEt.text += 'effect("' + eff.name + '")("' + eff(1).name + '");\n';
                         otherLayerEt.text += 'thisComp.layer("' + secL[i].name + '").effect("' + eff.name + '")("' + eff(1).name + '");\n';
@@ -226,10 +264,25 @@ function main() {
             sliderCount = parseInt(this.text);
         };
 
+        sliderNameEt.onChange =  function () 
+        {
+            sliderName = this.text;
+        };
+
         // box
         oneBox_.onClick = function () 
         {
-            oneBox_ = this.value;
+            oneBox = this.value;
+        }
+
+        nameBox_.onClick = function () 
+        {
+            nameBox = this.value;
+        }
+
+        allBox_.onClick = function () 
+        {
+            allBox = this.value;
         }
 
   

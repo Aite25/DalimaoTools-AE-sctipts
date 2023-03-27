@@ -171,6 +171,9 @@ function main() {
 
         fixBtn.onClick = function ()
         {
+            var thisComp = app.project.activeItem;
+            var secP = thisComp.selectedProperties;
+            var secL = thisComp.selectedLayers;
             for(var i=0;i<secP.length;i++)
             {
                 if(secP[i].canSetExpression){

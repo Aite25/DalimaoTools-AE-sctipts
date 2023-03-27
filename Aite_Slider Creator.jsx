@@ -31,6 +31,7 @@ function main() {
                 createBtn: Button { text:'Create & Exp',alignment:['left','top'], preferredSize:[80,20] } \
                 oneBox: Checkbox { text:'1 width',preferredSize:[60,17],value:"+oneBox+"}    \
                 allBox: Checkbox { text:'x y z = a',preferredSize:[80,17],value:"+allBox+"}    \
+                fixBtn: Button { text:'Fix exp',alignment:['left','top'], preferredSize:[80,20] } \
             }, \
             gr2: Group {  alignment:['fill','top'],\
                 onlyCreateBtn: Button { text:'Only Create',alignment:['left','top'], preferredSize:[80,20] } \
@@ -60,6 +61,7 @@ function main() {
         var createBtn = pal.gr.gr1.createBtn;
         var oneBox_ = pal.gr.gr1.oneBox;
         var allBox_ = pal.gr.gr1.allBox;
+        var fixBtn = pal.gr.gr1.fixBtn;
         //gr2
         var typeSlider = pal.gr.gr2.typeSlider;
         var onlyCreateBtn = pal.gr.gr2.onlyCreateBtn;
@@ -167,6 +169,45 @@ function main() {
             app.endUndoGroup;
         };
 
+        fixBtn.onClick = function ()
+        {
+            for(var i=0;i<secP.length;i++)
+            {
+                if(secP[i].canSetExpression){
+                    if(secP[i].expressionError != ""){
+                        var experr = secP[i].expressionError;
+                        var exp = secP[i].expression;
+                        var line_re_exp = /Error at line (\d+)/;
+                        var exparr = exp.split("\n");
+                        var experr_line = experr.match(line_re_exp)[1];
+                        
+                        var slider_name_re_exp = /effect named ‘(.*)’ is missing/;
+                        var slider_name = experr.match(slider_name_re_exp)[1];
+
+                        var errline_str = exparr[experr_line-1];
+                        var errline_arrsplit = errline_str.split(slider_name)[1];
+                        var type_str = errline_arrsplit.match(/\"\)\(\"(.*)\"\)/)[1];
+                        var eff;
+                        if(type_str == "Slider"){
+                            eff = secL[0].Effects.addProperty("ADBE Slider Control");
+                            eff.name = slider_name;
+                        }else if(type_str == "Point"){
+                            eff = secL[0].Effects.addProperty("ADBE Point Control");
+                            eff.name = slider_name;
+                        }else if(type_str == "3D Point"){
+                            eff = secL[0].Effects.addProperty("ADBE Point3D Control");
+                            eff.name = slider_name;
+                        }else if(type_str == "Angle"){
+                            eff = secL[0].Effects.addProperty("ADBE Angle Control");
+                            eff.name = slider_name;
+                        }else if(type_str == "Checkbox"){
+                            eff = secL[0].Effects.addProperty("ADBE Checkbox Control");
+                            eff.name = slider_name;
+                        }
+                    }
+                }
+            }
+        }
         onlyCreateBtn.onClick = function () 
         {
             app.beginUndoGroup(scriptName);

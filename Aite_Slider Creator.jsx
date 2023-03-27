@@ -31,7 +31,7 @@ function main() {
                 createBtn: Button { text:'Create & Exp',alignment:['left','top'], preferredSize:[80,20] } \
                 oneBox: Checkbox { text:'1 width',preferredSize:[60,17],value:"+oneBox+"}    \
                 allBox: Checkbox { text:'x y z = a',preferredSize:[80,17],value:"+allBox+"}    \
-                fixBtn: Button { text:'Fix exp',alignment:['left','top'], preferredSize:[80,20] } \
+                addaptBtn: Button { text:'Adapt Exp',alignment:['left','top'], preferredSize:[80,20] } \
             }, \
             gr2: Group {  alignment:['fill','top'],\
                 onlyCreateBtn: Button { text:'Only Create',alignment:['left','top'], preferredSize:[80,20] } \
@@ -61,7 +61,7 @@ function main() {
         var createBtn = pal.gr.gr1.createBtn;
         var oneBox_ = pal.gr.gr1.oneBox;
         var allBox_ = pal.gr.gr1.allBox;
-        var fixBtn = pal.gr.gr1.fixBtn;
+        var addaptBtn = pal.gr.gr1.addaptBtn;
         //gr2
         var typeSlider = pal.gr.gr2.typeSlider;
         var onlyCreateBtn = pal.gr.gr2.onlyCreateBtn;
@@ -169,7 +169,7 @@ function main() {
             app.endUndoGroup;
         };
 
-        fixBtn.onClick = function ()
+        addaptBtn.onClick = function ()
         {
             var thisComp = app.project.activeItem;
             var secP = thisComp.selectedProperties;

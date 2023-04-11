@@ -171,6 +171,7 @@ function main() {
 
         addaptBtn.onClick = function ()
         {
+            app.beginUndoGroup(scriptName);
             var thisComp = app.project.activeItem;
             var secP = thisComp.selectedProperties;
             var secL = thisComp.selectedLayers;
@@ -180,36 +181,97 @@ function main() {
                     if(secP[i].expressionError != ""){
                         var experr = secP[i].expressionError;
                         var exp = secP[i].expression;
-                        var line_re_exp = /Error at line (\d+)/;
-                        var exparr = exp.split("\n");
-                        var experr_line = experr.match(line_re_exp)[1];
-                        
-                        var slider_name_re_exp = /effect named ‘(.*)’ is missing/;
-                        var slider_name = experr.match(slider_name_re_exp)[1];
-
-                        var errline_str = exparr[experr_line-1];
-                        var errline_arrsplit = errline_str.split(slider_name)[1];
-                        var type_str = errline_arrsplit.match(/\"\)\(\"(.*)\"\)/)[1];
-                        var eff;
-                        if(type_str == "Slider"){
-                            eff = secL[0].Effects.addProperty("ADBE Slider Control");
-                            eff.name = slider_name;
-                        }else if(type_str == "Point"){
-                            eff = secL[0].Effects.addProperty("ADBE Point Control");
-                            eff.name = slider_name;
-                        }else if(type_str == "3D Point"){
-                            eff = secL[0].Effects.addProperty("ADBE Point3D Control");
-                            eff.name = slider_name;
-                        }else if(type_str == "Angle"){
-                            eff = secL[0].Effects.addProperty("ADBE Angle Control");
-                            eff.name = slider_name;
-                        }else if(type_str == "Checkbox"){
-                            eff = secL[0].Effects.addProperty("ADBE Checkbox Control");
-                            eff.name = slider_name;
+                        var exp_search = 0;
+                        var slider_re_exp = /(?!\.)effect\(\"(.*)\"\)\(\"(.*)\"\)/;
+                        var gr_arr = [];
+                        while(exp_search!=-1){
+                            exp_search = exp.search(slider_re_exp);
+                            if(exp_search == -1){
+                                break;
+                            }
+                            exp_match = exp.match(slider_re_exp);
+                            gr_arr.push(exp_match);
+                            exp = exp.replace(exp_match[0],"eff#$1##$2");
+                        }
+                        function same_name_detect(eff_name){
+                            var name_is_same = 0;
+                            if(secL[0].Effects.property(eff_name) != null){
+                                name_is_same = 1;
+                            };
+                            return name_is_same;
+                        }
+                        function add_slider(type_str, slider_name){
+                            if(same_name_detect(slider_name)==1){
+                                return;
+                            }
+                            if(type_str == "Slider"||"滑块"||"ADBE Slider Control"){
+                                eff = secL[0].Effects.addProperty("ADBE Slider Control");
+                                eff.name = slider_name;
+                            }else if(type_str == "Point"||"点"||"ADBE Point Control"){
+                                eff = secL[0].Effects.addProperty("ADBE Point Control");
+                                eff.name = slider_name;
+                            }else if(type_str == "3D Point"||"3D点"||"ADBE Point3D Control"){
+                                eff = secL[0].Effects.addProperty("ADBE Point3D Control");
+                                eff.name = slider_name;
+                            }else if(type_str == "Angle"||"角度"||"ADBE Angle Control"){
+                                eff = secL[0].Effects.addProperty("ADBE Angle Control");
+                                eff.name = slider_name;
+                            }else if(type_str == "Checkbox"||"复选框"||"ADBE Checkbox Control"){
+                                eff = secL[0].Effects.addProperty("ADBE Checkbox Control");
+                                eff.name = slider_name;
+                            }else if(type_str == "Color"||"颜色"||"ADBE Color Control"){
+                                eff = secL[0].Effects.addProperty("ADBE Color Control");
+                                eff.name = slider_name;
+                            }
+                        }
+            
+                        for(var i = 0;i<gr_arr.length;i++){
+                            add_slider(gr_arr[i][2],gr_arr[i][1]);
                         }
                     }
                 }
             }
+            // version befor 2023
+            // var thisComp = app.project.activeItem;
+            // var secP = thisComp.selectedProperties;
+            // var secL = thisComp.selectedLayers;
+            // for(var i=0;i<secP.length;i++)
+            // {
+            //     if(secP[i].canSetExpression){
+            //         if(secP[i].expressionError != ""){
+            //             var experr = secP[i].expressionError;
+            //             var exp = secP[i].expression;
+            //             var line_re_exp = /Error at line (\d+)/;
+            //             var exparr = exp.split("\n");
+            //             var experr_line = experr.match(line_re_exp)[1];
+                        
+            //             var slider_name_re_exp = /effect named ‘(.*)’ is missing/;
+            //             var slider_name = experr.match(slider_name_re_exp)[1];
+
+            //             var errline_str = exparr[experr_line-1];
+            //             var errline_arrsplit = errline_str.split(slider_name)[1];
+            //             var type_str = errline_arrsplit.match(/\"\)\(\"(.*)\"\)/)[1];
+            //             var eff;
+            //             if(type_str == "Slider"){
+            //                 eff = secL[0].Effects.addProperty("ADBE Slider Control");
+            //                 eff.name = slider_name;
+            //             }else if(type_str == "Point"){
+            //                 eff = secL[0].Effects.addProperty("ADBE Point Control");
+            //                 eff.name = slider_name;
+            //             }else if(type_str == "3D Point"){
+            //                 eff = secL[0].Effects.addProperty("ADBE Point3D Control");
+            //                 eff.name = slider_name;
+            //             }else if(type_str == "Angle"){
+            //                 eff = secL[0].Effects.addProperty("ADBE Angle Control");
+            //                 eff.name = slider_name;
+            //             }else if(type_str == "Checkbox"){
+            //                 eff = secL[0].Effects.addProperty("ADBE Checkbox Control");
+            //                 eff.name = slider_name;
+            //             }
+            //         }
+            //     }
+            // }
+            app.endUndoGroup;
         }
         onlyCreateBtn.onClick = function () 
         {

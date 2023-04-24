@@ -310,8 +310,17 @@ function main() {
             }
 
             // copy layers
-            for(var i = 0;i<count;i++){
+            for(var i = 0;i<count-1;i++){
                 var newlayer = secL[secL.length-1].duplicate();
+                if(newlayer.Effects.property("columns") != null){
+                    newlayer.Effects.property("columns").remove();
+                }
+                if(newlayer.Effects.property("gapX") != null){
+                    newlayer.Effects.property("gapX").remove();
+                }
+                if(newlayer.Effects.property("gapY") != null){
+                    newlayer.Effects.property("gapY").remove();
+                }
                 newlayer.moveAfter(thisComp.layer(secL[secL.length-1].index + i));
                 column = (i+1)%columns;
                 row = Math.floor((i+1)/columns);
@@ -321,6 +330,14 @@ function main() {
                     var idsl = newlayer.Effects.addProperty("ADBE Slider Control");
                     idsl.name = "ID";
                     idsl(1).expression = "id = index - thisComp.layer(\"" + secL[secL.length-1].name + "\").index; \n //id = effect(\"ID\")(\"ADBE Slider Control-0001\");";
+                    
+                    var colsl = newlayer.Effects.addProperty("ADBE Slider Control");
+                    colsl.name = "column";
+                    colsl(1).setValue(column);
+
+                    var rowsl = newlayer.Effects.addProperty("ADBE Slider Control");
+                    rowsl.name = "row";
+                    rowsl(1).setValue(row);
                     newlayer.position.expression = "id = effect(\"ID\")(\"Slider\");\ncolumns = thisComp.layer(\"" + secL[secL.length-1].name + "\").effect(\"columns\")(\"Slider\");\ngapX = thisComp.layer(\"" + secL[secL.length-1].name + "\").effect(\"gapX\")(\"Slider\");\ngapY = thisComp.layer(\"" + secL[secL.length-1].name + "\").effect(\"gapY\")(\"Slider\");\n\ncolumn = id%columns;\nrow = Math.floor(id/columns);\n\n[column * gapX,row * gapY] + thisComp.layer(\"" + secL[secL.length-1].name + "\").position;";
                 }
             }

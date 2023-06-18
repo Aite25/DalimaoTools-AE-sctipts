@@ -138,6 +138,49 @@ function main() {
             offsetBool = this.value;
         }
         // functions
+
+        // var repeaterArr = [];
+        // var rep_layerArr = [];
+        function add_repeater(){
+            var thisComp = app.project.activeItem;
+            var secP = thisComp.selectedProperties;
+            var secL = thisComp.selectedLayers;
+            var repeaterArr = [];
+            var rep_layerArr = [];
+            var rep_lay = [];
+            if(secP.length == 0 && secL.length != 0){
+                for(var i = 0;i<secL.length;i++){
+                    if(secL[i].matchName == "ADBE Vector Layer"){
+                        var repeater = secL[i]("Contents").addProperty("ADBE Vector Filter - Repeater");
+                        repeaterArr.push(repeater);
+                        rep_layerArr.push(secL[i]);
+                    }
+                }
+            }else if(secP.length != 0){
+                for(var i = 0;i<secP.length;i++){
+                    var secObj = secP[i];
+                    for(var j = 0;j<5;j++){
+                        if(secObj.matchName == "ADBE Vector Group"){
+                            var repeater = secObj.content.addProperty("ADBE Vector Filter - Repeater");
+                            repeaterArr.push(repeater);
+                            var current_layer = repeater.propertyGroup(repeater.propertyDepth);
+                            rep_layerArr.push(current_layer);
+                            break;
+                        }
+                        else if(secObj.matchName == "ADBE Vector Layer"){break;}
+                        else{secObj = secObj.propertyGroup(1);}
+                    }
+                }
+            }
+            rep_lay.push(repeaterArr,rep_layerArr);
+            return rep_lay;
+            // var arrstr = "";
+            // for(var element in rep_layerArr){
+            //     arrstr += element + "\n";
+            // }
+            // alert(arrstr);
+        }
+
         // defult
         function shape_defult(copies){
             var thisComp = app.project.activeItem;
@@ -165,46 +208,39 @@ function main() {
             var thisComp = app.project.activeItem;
             var secL = thisComp.selectedLayers;
             var secP = thisComp.selectedProperties;
-            for(var i=0;i<secP.length;i++)
-            {
-                // add repeater
-                var secObj = secP[i];
-                for(var i = 0;i<5;i++){
-                    if(secObj.matchName == "ADBE Vector Group"){
-                        var repeater = secObj.content.addProperty("ADBE Vector Filter - Repeater");
-                        break;
-                    }
-                    else if(secObj.matchName == "ADBE Vector Layer"){break;}
-                    else{secObj = secObj.propertyGroup(1);}
-                }
-                
-                repeater.property("ADBE Vector Repeater Copies").setValue(2);
-                repeater.property("ADBE Vector Repeater Transform").property("Scale").setValue([-100,100]);
-                repeater.name = "X flip - Repeater";
+
+            // add repeater
+            var repeaterArr = [];
+            var rep_layerArr = [];
+            var patharr = add_repeater();
+            repeaterArr = patharr[0];
+            rep_layerArr = patharr[1];
+            
+            for(var i = 0;i<repeaterArr.length;i++){
+                repeaterArr[i].property("ADBE Vector Repeater Copies").setValue(2);
+                repeaterArr[i].property("ADBE Vector Repeater Transform").property("Scale").setValue([-100,100]);
+                repeaterArr[i].name = "X flip - Repeater";
             }
+
         }
 
         // Y flip
         function shape_yflip(){
-        var thisComp = app.project.activeItem;
-        var secL = thisComp.selectedLayers;
-        var secP = thisComp.selectedProperties;
-        for(var i=0;i<secP.length;i++)
-            {
-                // add repeater
-                var secObj = secP[i];
-                for(var i = 0;i<5;i++){
-                    if(secObj.matchName == "ADBE Vector Group"){
-                        var repeater = secObj.content.addProperty("ADBE Vector Filter - Repeater");
-                        break;
-                    }
-                    else if(secObj.matchName == "ADBE Vector Layer"){break;}
-                    else{secObj = secObj.propertyGroup(1);}
-                }
+            var thisComp = app.project.activeItem;
+            var secL = thisComp.selectedLayers;
+            var secP = thisComp.selectedProperties;
+            // add repeater
+            var repeaterArr = [];
+            var rep_layerArr = [];
+            var patharr = add_repeater();
+            repeaterArr = patharr[0];
+            rep_layerArr = patharr[1];
+            
+            for(var i = 0;i<repeaterArr.length;i++){
                 
-                repeater.property("ADBE Vector Repeater Copies").setValue(2);
-                repeater.property("ADBE Vector Repeater Transform").property("Scale").setValue([100,-100]);
-                repeater.name = "Y flip - Repeater";
+                repeaterArr[i].property("ADBE Vector Repeater Copies").setValue(2);
+                repeaterArr[i].property("ADBE Vector Repeater Transform").property("Scale").setValue([100,-100]);
+                repeaterArr[i].name = "Y flip - Repeater";
             }
         }
 
@@ -212,24 +248,19 @@ function main() {
         function shape_xyflip(){
             var thisComp = app.project.activeItem;
             var secL = thisComp.selectedLayers;
-            var secP = thisComp.selectedProperties;            
-            for(var i=0;i<secP.length;i++)
-                {
-                    // add repeater
-                    var secObj = secP[i];
-                    for(var i = 0;i<5;i++){
-                        if(secObj.matchName == "ADBE Vector Group"){
-                            var repeater = secObj.content.addProperty("ADBE Vector Filter - Repeater");
-                            break;
-                        }
-                        else if(secObj.matchName == "ADBE Vector Layer"){break;}
-                        else{secObj = secObj.propertyGroup(1);}
-                    }
-                    
-                    repeater.property("ADBE Vector Repeater Copies").setValue(2);
-                    repeater.property("ADBE Vector Repeater Transform").property("Scale").setValue([-100,-100]);
-                    repeater.name = "XY flip - Repeater";
-                }
+            var secP = thisComp.selectedProperties;
+            // add repeater
+            var repeaterArr = [];
+            var rep_layerArr = [];
+            var patharr = add_repeater();
+            repeaterArr = patharr[0];
+            rep_layerArr = patharr[1];
+            
+            for(var i = 0;i<repeaterArr.length;i++){
+                repeaterArr[i].property("ADBE Vector Repeater Copies").setValue(2);
+                repeaterArr[i].property("ADBE Vector Repeater Transform").property("Scale").setValue([-100,-100]);
+                repeaterArr[i].name = "XY flip - Repeater";
+            }
         }
 
         // 90 degree duplicate
@@ -237,22 +268,18 @@ function main() {
             var thisComp = app.project.activeItem;
             var secL = thisComp.selectedLayers;
             var secP = thisComp.selectedProperties;
-            for(var i=0;i<secP.length;i++)
-            {
-                // add repeater
-                var secObj = secP[i];
-                for(var i = 0;i<5;i++){
-                    if(secObj.matchName == "ADBE Vector Group"){
-                        var repeater = secObj.content.addProperty("ADBE Vector Filter - Repeater");
-                        break;
-                    }
-                    else if(secObj.matchName == "ADBE Vector Layer"){break;}
-                    else{secObj = secObj.propertyGroup(1);}
-                }
+            // add repeater
+            var repeaterArr = [];
+            var rep_layerArr = [];
+            var patharr = add_repeater();
+            repeaterArr = patharr[0];
+            rep_layerArr = patharr[1];
+            
+            for(var i = 0;i<repeaterArr.length;i++){
                 
-                repeater.property("ADBE Vector Repeater Copies").setValue(2);
-                repeater.property("ADBE Vector Repeater Transform").property("Rotation").setValue(90);
-                repeater.name = "90 degree - Repeater";
+                repeaterArr[i].property("ADBE Vector Repeater Copies").setValue(2);
+                repeaterArr[i].property("ADBE Vector Repeater Transform").property("Rotation").setValue(90);
+                repeaterArr[i].name = "90 degree - Repeater";
             }
         }
 
@@ -261,22 +288,19 @@ function main() {
             var thisComp = app.project.activeItem;
             var secL = thisComp.selectedLayers;
             var secP = thisComp.selectedProperties;
-            for(var i=0;i<secP.length;i++)
-            {
-                // add repeater
-                var secObj = secP[i];
-                for(var i = 0;i<5;i++){
-                    if(secObj.matchName == "ADBE Vector Group"){
-                        var repeater = secObj.content.addProperty("ADBE Vector Filter - Repeater");
-                        break;
-                    }
-                    else if(secObj.matchName == "ADBE Vector Layer"){break;}
-                    else{secObj = secObj.propertyGroup(1);}
-                }
+
+            // add repeater
+            var repeaterArr = [];
+            var rep_layerArr = [];
+            var patharr = add_repeater();
+            repeaterArr = patharr[0];
+            rep_layerArr = patharr[1];
+            
+            for(var i = 0;i<repeaterArr.length;i++){
                 
-                repeater.property("ADBE Vector Repeater Copies").setValue(2);
-                repeater.property("ADBE Vector Repeater Transform").property("Rotation").setValue(180);
-                repeater.name = "180 degree - Repeater";
+                repeaterArr[i].property("ADBE Vector Repeater Copies").setValue(2);
+                repeaterArr[i].property("ADBE Vector Repeater Transform").property("Rotation").setValue(180);
+                repeaterArr[i].name = "180 degree - Repeater";
             }
         }
 
@@ -285,26 +309,22 @@ function main() {
             var thisComp = app.project.activeItem;
             var secL = thisComp.selectedLayers;
             var secP = thisComp.selectedProperties;
-            for(var i=0;i<secP.length;i++)
-            {
-                // add repeater
-                var secObj = secP[i];
-                for(var i = 0;i<5;i++){
-                    if(secObj.matchName == "ADBE Vector Group"){
-                        var repeater = secObj.content.addProperty("ADBE Vector Filter - Repeater");
-                        break;
-                    }
-                    else if(secObj.matchName == "ADBE Vector Layer"){break;}
-                    else{secObj = secObj.propertyGroup(1);}
-                }
-                var depth_idx_str = repeater.propertyDepth + "_" + repeater.propertyIndex;
-                var slider = secL[0].Effects.addProperty("ADBE Slider Control");
+
+            // add repeater
+            var repeaterArr = [];
+            var rep_layerArr = [];
+            var patharr = add_repeater();
+            repeaterArr = patharr[0];
+            rep_layerArr = patharr[1];
+
+            for(var i = 0;i<repeaterArr.length;i++){
+                var depth_idx_str = repeaterArr[i].propertyDepth + "_" + repeaterArr[i].propertyIndex;
+                var slider = rep_layerArr[i].Effects.addProperty("ADBE Slider Control");
                 slider.name = "Copies " + depth_idx_str;
                 slider(1).setValue(copies);
-                
-                repeater.property("ADBE Vector Repeater Copies").expression = "effect(\"" + slider.name + "\")(\"Slider\")";
-                repeater.property("ADBE Vector Repeater Transform").property("Rotation").expression = "thisProperty.propertyGroup(2).copies == 0?0:360/thisProperty.propertyGroup(2).copies;";
-                repeater.name = "Ring - Repeater";
+                repeaterArr[i].property("ADBE Vector Repeater Copies").expression = "effect(\"" + slider.name + "\")(\"Slider\")";
+                repeaterArr[i].name = "Ring - Repeater " + depth_idx_str;
+                repeaterArr[i].property("ADBE Vector Repeater Transform").property("Rotation").expression = "thisProperty.propertyGroup(2).copies == 0?0:360/thisProperty.propertyGroup(2).copies;";
             }
         }
         // Interpose dulplicate repeater
@@ -312,32 +332,29 @@ function main() {
             var thisComp = app.project.activeItem;
             var secL = thisComp.selectedLayers;
             var secP = thisComp.selectedProperties;
-            for(var i=0;i<secP.length;i++)
-            {
-                // add repeater
-                var secObj = secP[i];
-                for(var i = 0;i<5;i++){
-                    if(secObj.matchName == "ADBE Vector Group"){
-                        var repeater = secObj.content.addProperty("ADBE Vector Filter - Repeater");
-                        break;
-                    }
-                    else if(secObj.matchName == "ADBE Vector Layer"){break;}
-                    else{secObj = secObj.propertyGroup(1);}
-                }
+
+            // add repeater
+            var repeaterArr = [];
+            var rep_layerArr = [];
+            var patharr = add_repeater();
+            repeaterArr = patharr[0];
+            rep_layerArr = patharr[1];
                 
-                var slider = secL[0].Effects.addProperty("ADBE Slider Control");
-                var depth_idx_str = repeater.propertyDepth + "_" + repeater.propertyIndex;
+            for(var i = 0;i<repeaterArr.length;i++){
+                var slider = rep_layerArr[i].Effects.addProperty("ADBE Slider Control");
+                var depth_idx_str = repeaterArr[i].propertyDepth + "_" + repeaterArr[i].propertyIndex;
                 slider.name = "Copies " + depth_idx_str;
                 slider(1).setValue(copies);
-                repeater.property("ADBE Vector Repeater Copies").expression = "effect(\"" + slider.name + "\")(\"Slider\")";
-                repeater.property("ADBE Vector Repeater Offset").expression = "(thisProperty.propertyGroup(1).copies-1) * -0.5";
+                repeaterArr[i].property("ADBE Vector Repeater Copies").expression = "effect(\"" + slider.name + "\")(\"Slider\")";
+                repeaterArr[i].property("ADBE Vector Repeater Offset").expression = "(thisProperty.propertyGroup(1).copies-1) * -0.5";
                 
-                var position_slider = secL[0].Effects.addProperty("ADBE Point Control");
+                var position_slider = rep_layerArr[i].Effects.addProperty("ADBE Point Control");
                 position_slider.name = "Pos - Repeater " + depth_idx_str;
                 position_slider(1).setValue(pos);
-                repeater.property("ADBE Vector Repeater Transform").property("Position").expression = "effect(\"" + position_slider.name + "\")(\"Point\")";
-                repeater.name = "Interpose - Repeater";
+                repeaterArr[i].property("ADBE Vector Repeater Transform").property("Position").expression = "effect(\"" + position_slider.name + "\")(\"Point\")";
+                repeaterArr[i].name = "Interpose - Repeater " + depth_idx_str;
             }
+            
         }
 
         // event callbacks
@@ -468,25 +485,21 @@ function main() {
             var thisComp = app.project.activeItem;
             var secL = thisComp.selectedLayers;
             var secP = thisComp.selectedProperties;
-            for(var i=0;i<secP.length;i++)
-            {
-                // add repeater
-                var secObj = secP[i];
-                for(var i = 0;i<5;i++){
-                    if(secObj.matchName == "ADBE Vector Group"){
-                        var repeater = secObj.content.addProperty("ADBE Vector Filter - Repeater");
-                        break;
-                    }
-                    else if(secObj.matchName == "ADBE Vector Layer"){break;}
-                    else{secObj = secObj.propertyGroup(1);}
-                }
+            // add repeater
+            var repeaterArr = [];
+            var rep_layerArr = [];
+            var patharr = add_repeater();
+            repeaterArr = patharr[0];
+            rep_layerArr = patharr[1];
+
+            for(var i = 0;i<repeaterArr.length;i++){
                 
-                repeater.property("ADBE Vector Repeater Copies").setValue(copiesNum);
+                repeaterArr[i].property("ADBE Vector Repeater Copies").setValue(copiesNum);
                 if(offsetBool == 1){
-                    repeater.property("ADBE Vector Repeater Offset").expression = "(thisProperty.propertyGroup(1).copies-1) * -0.5";
+                    repeaterArr[i].property("ADBE Vector Repeater Offset").expression = "(thisProperty.propertyGroup(1).copies-1) * -0.5";
                 }
-                repeater.property("ADBE Vector Repeater Transform").property("Position").setValue([posXnum,posYnum]);
-                repeater.property("ADBE Vector Repeater Transform").property("Rotation").setValue(rotationNum);
+                repeaterArr[i].property("ADBE Vector Repeater Transform").property("Position").setValue([posXnum,posYnum]);
+                repeaterArr[i].property("ADBE Vector Repeater Transform").property("Rotation").setValue(rotationNum);
             }
             app.endUndoGroup;
         };

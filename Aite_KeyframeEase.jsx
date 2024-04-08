@@ -145,7 +145,22 @@ function main() {
         }, \
         }";
         pal.gr = pal.add(res);
-        
+        var influenceEt = pal.gr.gr1.influenceEt;
+        var influenceSlider = pal.gr.gr1.influenceSlider;
+        var applyBtn = pal.gr.gr1.applyBtn;
+        var extractBtn = pal.gr.gr2.extractBtn;
+        var spaceEt = pal.gr.gr2.spaceEt;
+        var spaceSlider = pal.gr.gr2.spaceSlider;
+        var frameBtn = pal.gr.gr3.frameBtn;
+        var frameEt = pal.gr.gr3.frameEt;
+        var minEt = pal.gr.gr3.minEt;
+        var maxEt = pal.gr.gr3.maxEt;
+        var frameSlider = pal.gr.gr3.frameSlider;
+        var snapBox_ = pal.gr.gr3.snapBox;
+        var bakeBtn = pal.gr.gr4.bakeBtn;
+        var revSecLBtn = pal.gr.gr4.revSecLBtn;
+        var idCreatBtn = pal.gr.gr4.idCreatBtn;
+
         var influence = 0;
         var space = 100;
 
@@ -155,7 +170,7 @@ function main() {
             this.layout.resize();
         };
             //influence
-        pal.gr.gr1.influenceEt.onChange = function () 
+        influenceEt.onChange = function () 
         {
             this.text = eval(this.text);
             if (isNaN(this.text))
@@ -166,17 +181,17 @@ function main() {
             influence = clamp(0,100);
             influence = parseFloat(this.text);
         }
-        pal.gr.gr1.influenceSlider.onChange = pal.gr.gr1.influenceSlider.onChanging = function () 
+        influenceSlider.onChange = influenceSlider.onChanging = function () 
         {
             this.value = Math.round(this.value);
             this.parent.influenceEt.text = this.value*10;
             influence = this.value*10;
             if(app.project.activeItem.selectedProperties.length != 0){
-                pal.gr.gr1.applyBtn.onClick();
+                applyBtn.onClick();
             }
         };
             // space
-        pal.gr.gr2.spaceEt.onChange = function () 
+        spaceEt.onChange = function () 
         {
             this.text = eval(this.text);
             if (isNaN(this.text))
@@ -187,17 +202,17 @@ function main() {
             space = clamp(0,200);
             space = parseFloat(this.text);
         }
-        pal.gr.gr2.spaceSlider.onChange = pal.gr.gr2.spaceSlider.onChanging = function () 
+        spaceSlider.onChange = spaceSlider.onChanging = function () 
         {
             this.value = Math.round(this.value);
             this.parent.spaceEt.text = this.value*10;  
             space = this.value*10;
             if(app.project.activeItem.selectedProperties.length != 0){
-                pal.gr.gr1.applyBtn.onClick();
+                applyBtn.onClick();
             }
         };
             // apply
-        pal.gr.gr1.applyBtn.onClick = function () 
+        applyBtn.onClick = function () 
         {
             app.beginUndoGroup(scriptName);
             
@@ -250,7 +265,7 @@ function main() {
             app.endUndoGroup;
         };
             // extract
-        pal.gr.gr2.extractBtn.onClick = function () 
+        extractBtn.onClick = function () 
         {
             app.beginUndoGroup(scriptName);
             var selectedLayers = app.project.activeItem.selectedLayers;
@@ -262,21 +277,21 @@ function main() {
                     var influenceB = curProperties.keyInTemporalEase(curKeys[1])[0].influence;
                     
                     if(influenceA <= 0.1){
-                        pal.gr.gr1.influenceSlider.value = 0;
-                        pal.gr.gr1.influenceEt.text = 0;
+                        influenceSlider.value = 0;
+                        influenceEt.text = 0;
                     }else{
-                        pal.gr.gr1.influenceSlider.value = influenceA/10;
-                        pal.gr.gr1.influenceEt.text = influenceA;
+                        influenceSlider.value = influenceA/10;
+                        influenceEt.text = influenceA;
                     }
 
                     if(influenceB <= 0.1){
-                        pal.gr.gr1.influenceSlider.value = (200 - influenceA)/10;
+                        influenceSlider.value = (200 - influenceA)/10;
                         space = 200 - influenceA;
                     }else{
-                        pal.gr.gr2.spaceSlider.value = (200 - influenceB - influenceA)/10;
+                        spaceSlider.value = (200 - influenceB - influenceA)/10;
                         space = 200 - influenceB - influenceA;
                     }
-                    pal.gr.gr2.spaceEt.text = space;
+                    spaceEt.text = space;
 
                     influence = influenceA;
                     
@@ -288,7 +303,7 @@ function main() {
         }
 
             //frame
-        pal.gr.gr3.frameBtn.onClick = function () 
+        frameBtn.onClick = function () 
         {
             app.beginUndoGroup(scriptName);
             if(app.project.activeItem.selectedLayers.length > 1){
@@ -297,7 +312,7 @@ function main() {
             app.endUndoGroup;
         };
 
-        pal.gr.gr3.frameEt.onChange = function () 
+        frameEt.onChange = function () 
         {
             this.text = eval(this.text);
             if (isNaN(this.text))
@@ -312,7 +327,7 @@ function main() {
         }
     
             // frameSlider min
-        pal.gr.gr3.minEt.onChange = function () 
+        minEt.onChange = function () 
         {
             this.text = eval(this.text);
             if (isNaN(this.text))
@@ -323,7 +338,7 @@ function main() {
         }
     
             // frameSlider max
-        pal.gr.gr3.maxEt.onChange = function () 
+        maxEt.onChange = function () 
         {
             this.text = eval(this.text);
             if (isNaN(this.text))
@@ -334,7 +349,7 @@ function main() {
         }
     
 
-        pal.gr.gr3.frameSlider.onChange = pal.gr.gr3.frameSlider.onChanging = function () 
+        frameSlider.onChange = frameSlider.onChanging = function () 
         {
             app.beginUndoGroup(scriptName);
             this.value = Math.round(this.value);
@@ -346,13 +361,13 @@ function main() {
             app.endUndoGroup;
         };
     
-        pal.gr.gr3.snapBox.onClick = function () 
+        snapBox_.onClick = function () 
         {
             snapBox = this.value;
         }
 
             // bake
-        pal.gr.gr4.bakeBtn.onClick = function () 
+        bakeBtn.onClick = function () 
         {
             app.beginUndoGroup(scriptName);
             var selectedLayers = app.project.activeItem.selectedLayers;
@@ -374,14 +389,14 @@ function main() {
             app.endUndoGroup;
         }
             // reverseSelect
-        pal.gr.gr4.revSecLBtn.onClick = function () 
+        revSecLBtn.onClick = function () 
         {
             app.beginUndoGroup(scriptName);
             reverseSeclect();
             app.endUndoGroup;
         }
             // ID Create
-        pal.gr.gr4.idCreatBtn.onClick = function () 
+        idCreatBtn.onClick = function () 
         {
             app.beginUndoGroup(scriptName);
             idcreat();

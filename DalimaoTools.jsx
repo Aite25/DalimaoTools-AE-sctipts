@@ -3112,6 +3112,20 @@ var pal = (function () {
         dalimao_st2.text = (tpanel1_tab_array[this.value].text);
     }
 
+    // creat tab str array
+    var tpanel1_tab_str_array = [];
+    for(var i = 0;i<tpanel1_tab_array.length;i++){
+        tpanel1_tab_str_array.push(tpanel1_tab_array[i].text);
+    }
+
+    //pannel change
+    tpanel1.onChange = function (){
+        var tabtext = tpanel1.selection.text;
+        var select_tab_index = tpanel1_tab_str_array.indexOf(tabtext);
+        dalimao_index_st.text = select_tab_index;
+        dalimao_st2.text = tabtext;
+    }
+
     // TPANEL1
     // =======
     tpanel1.selection = keyframeEase_tab; 

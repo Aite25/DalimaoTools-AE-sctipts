@@ -1,4 +1,4 @@
-
+//
 function main() {
     ///// info
     var scriptName = "大狸猫box";
@@ -439,3 +439,4 @@ function main() {
     };
 }
 new main().run(this)
+

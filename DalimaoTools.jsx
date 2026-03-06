@@ -19,6 +19,13 @@ function loadModules() {
     // 设置全局标记，告诉模块它们正在被启动器加载
     $.global.DALIMAO_LOADER_ACTIVE = true;
     
+    // 注册函数：模块调用此函数向启动器注册自己，不再依赖文件名
+    $.global.DALIMAO_REGISTER = function(moduleObj) {
+        if (moduleObj && typeof moduleObj.buildUI === 'function') {
+            $.global._DALIMAO_PENDING_MODULE = moduleObj;
+        }
+    };
+    
     var scriptFolder = getScriptFolder();
     var modulesFolder = new Folder(scriptFolder + "/Modularized_Scripts");
     
@@ -43,51 +50,23 @@ function loadModules() {
                     continue;
                 }
                 
-                // 解码文件名中的特殊字符（如 %20 空格）
                 var baseName = decodeURI(files[i].name.replace(/^\d+_/, '').replace('.jsx', ''));
                 
-                // 检查是否是模块化脚本（通过读取文件内容判断）
-                var isModularScript = false;
+                // 读取文件内容，检查是否包含 DALIMAO_REGISTER 调用
                 files[i].open("r");
                 var fileContent = files[i].read();
                 files[i].close();
                 
-                // 检查是否包含模块导出对象（var XXXModule = ）
-                var possibleNames = [
-                    baseName + 'Module',
-                    baseName.replace(/\s/g, '') + 'Module',
-                    baseName.replace(/_/g, '') + 'Module',
-                    baseName.replace(/[\s_]/g, '') + 'Module'
-                ];
-                
-                for (var j = 0; j < possibleNames.length; j++) {
-                    if (fileContent.indexOf('var ' + possibleNames[j]) !== -1) {
-                        isModularScript = true;
-                        break;
-                    }
-                }
-                
                 var moduleObj = null;
                 
-                if (isModularScript) {
-                    // 只对模块化脚本执行 evalFile
+                if (fileContent.indexOf('DALIMAO_REGISTER') !== -1) {
+                    // 模块化脚本：包含注册调用，执行后从 _DALIMAO_PENDING_MODULE 获取模块对象
+                    $.global._DALIMAO_PENDING_MODULE = null;
                     $.evalFile(files[i]);
-                    
-                    // 尝试获取模块对象
-                    for (var j = 0; j < possibleNames.length; j++) {
-                        try {
-                            var testModule = eval(possibleNames[j]);
-                            if (testModule && typeof testModule.buildUI === 'function') {
-                                moduleObj = testModule;
-                                break;
-                            }
-                        } catch(e) {
-                            // 继续尝试下一个名称
-                        }
-                    }
+                    moduleObj = $.global._DALIMAO_PENDING_MODULE;
                 }
                 
-                if (moduleObj) {
+                if (moduleObj && typeof moduleObj.buildUI === 'function') {
                     modules.push({
                         name: moduleObj.name || baseName,
                         displayName: moduleObj.displayName || moduleObj.name || baseName,
@@ -167,6 +146,9 @@ function loadModules() {
         }
     }
     
+    // 清理全局注册函数和待注册模块
+    $.global._DALIMAO_PENDING_MODULE = null;
+    
     return modules;
 }
 
@@ -190,6 +172,7 @@ function buildMainUI(thisObj) {
 
     var dalimao_st = slider_gr.add("statictext", undefined, "狸猫启动器"); 
     var dalimao_index_st = slider_gr.add("statictext", undefined, "0"); 
+    dalimao_index_st.preferredSize.width = 30;
     var panel_slider = slider_gr.add("slider", undefined, 0, 0, 0); 
     panel_slider.alignment = ["fill","center"]; 
     var dalimao_st2 = slider_gr.add("statictext", undefined, "加载中...");

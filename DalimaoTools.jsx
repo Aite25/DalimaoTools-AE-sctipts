@@ -2,7 +2,7 @@
  * DalimaoTools - 模块化脚本启动器
  * 自动加载 Modularized_Scripts 文件夹内的所有模块
  * Author: 大狸猫
- * Version: 2.0
+ * Version: 2.1
  */
 
 // 获取脚本所在文件夹路径
@@ -162,110 +162,212 @@ function buildMainUI(thisObj) {
     pal.spacing = 5;
     pal.margins = 10;
     
-    // 顶部滑块组
-    var slider_gr = pal.add("group", undefined, {name: "slider_gr"}); 
-    slider_gr.orientation = "row"; 
-    slider_gr.alignChildren = ["left","center"]; 
-    slider_gr.spacing = 10; 
-    slider_gr.margins = 0; 
-    slider_gr.alignment = ["fill","top"]; 
+    // ==== 顶部导航栏：标签 + 图标按钮 + 滑块（合并为一行）====
+    var slider_gr = pal.add("group", undefined, {name: "slider_gr"});
+    slider_gr.orientation = "row";
+    slider_gr.alignChildren = ["left","center"];
+    slider_gr.spacing = 5;
+    slider_gr.margins = 0;
+    slider_gr.alignment = ["fill","top"];
 
-    var dalimao_st = slider_gr.add("statictext", undefined, "狸猫启动器"); 
-    var dalimao_index_st = slider_gr.add("statictext", undefined, "0"); 
-    dalimao_index_st.preferredSize.width = 30;
-    var panel_slider = slider_gr.add("slider", undefined, 0, 0, 0); 
-    panel_slider.alignment = ["fill","center"]; 
+    var dalimao_st = slider_gr.add("statictext", undefined, "狸猫启动器");
+
+    var openFolderBtn = slider_gr.add("button", undefined, "\uD83D\uDCC1");
+    openFolderBtn.preferredSize = [24, 20];
+    openFolderBtn.helpTip = "打开脚本文件夹";
+
+    var refreshBtn = slider_gr.add("button", undefined, "\u21BB");
+    refreshBtn.preferredSize = [24, 20];
+    refreshBtn.helpTip = "刷新脚本列表";
+
+    var dalimao_index_st = slider_gr.add("statictext", undefined, "0");
+    dalimao_index_st.preferredSize.width = 25;
+    var panel_slider = slider_gr.add("slider", undefined, 0, 0, 0);
+    panel_slider.alignment = ["fill","center"];
     var dalimao_st2 = slider_gr.add("statictext", undefined, "加载中...");
-    dalimao_st2.preferredSize.width = 120;
-    
-    // 加载模块
-    var modules = loadModules();
-    
-    if (modules.length === 0) {
-        var msg = pal.add("statictext", undefined, "未找到可用模块！\n请检查 Modularized_Scripts 文件夹。");
-        msg.alignment = ["center","center"];
-        
-        if (pal instanceof Window) {
-            pal.layout.layout(true);
-            pal.show();
+    dalimao_st2.preferredSize.width = 100;
+
+    // ==== 标签面板容器 ====
+    var tabContainer = pal.add("group", undefined, {name: "tabContainer"});
+    tabContainer.orientation = "column";
+    tabContainer.alignChildren = ["fill","fill"];
+    tabContainer.alignment = ["fill","fill"];
+
+    // 构建标签面板的函数（初始 + 刷新共用）
+    var currentTabIndex = 0;
+
+    function buildTabs(restoreIndex) {
+        // restoreIndex: 如果传入了索引，刷新后恢复到该页签
+        if (restoreIndex === undefined) restoreIndex = 0;
+        // 清空容器（手动逐个移除，ScriptUI 没有 removeAll）
+        while (tabContainer.children.length > 0) {
+            tabContainer.remove(0);
         }
-        return pal;
-    }
-    
-    // 创建标签面板
-    var tpanel = pal.add("tabbedpanel", undefined, undefined, {name: "tpanel"}); 
-    tpanel.alignChildren = "fill"; 
-    tpanel.orientation = "column"; 
-    tpanel.alignment = ["fill","fill"];
-    tpanel.margins = 10; 
-    
-    var tabs = [];
-    
-    // 为每个模块创建标签页
-    for (var i = 0; i < modules.length; i++) {
-        var tab = tpanel.add("tab", undefined, undefined, {name: modules[i].name + "_tab"}); 
-        tab.text = modules[i].displayName;
-        tab.orientation = "column";
-        tab.alignChildren = ["left","top"]; 
-        tab.spacing = 10;
-        
+
+        // 加载模块（独立 try-catch 防止模块错误导致面板崩溃）
+        var modules = [];
         try {
-            modules[i].buildUI(tab);
-            tabs.push(tab);
-        } catch(e) {
-            var errMsg = tab.add("statictext", undefined, "模块加载错误:\n" + e.toString());
-            errMsg.alignment = ["center","center"];
-            tabs.push(tab);
+            modules = loadModules();
+        } catch(loadErr) {
+            var errGr = tabContainer.add("group {orientation:'column', alignment:['fill','fill'], alignChildren:['left','top']}");
+            errGr.spacing = 5;
+            var errTitle = errGr.add("statictext", undefined, "模块加载失败");
+            errTitle.graphics.font = ScriptUI.newFont(errTitle.graphics.font.family, ScriptUI.FontStyle.BOLD, 12);
+            var errDetail = errGr.add("statictext", undefined, loadErr.toString().substring(0, 200), {multiline:true});
+            errDetail.preferredSize = [400, 60];
+            errDetail.alignment = ["fill","top"];
+            var errBtn = errGr.add("button", undefined, "复制错误信息");
+            errBtn.preferredSize = [120, 22];
+            errBtn.onClick = function() { alert("模块加载错误详情:\n\n" + loadErr.toString()); };
+            return;
         }
-    }
-    
-    // 更新滑块范围和标签
-    panel_slider.maxvalue = tabs.length - 1;
-    dalimao_st2.text = tabs.length > 0 ? tabs[0].text : "";
-    
-    // 滑块事件
-    panel_slider.onChange = panel_slider.onChanging = function() {
-        var idx = Math.round(this.value);
-        if (idx >= 0 && idx < tabs.length) {
-            tpanel.selection = tabs[idx];
-            dalimao_index_st.text = idx;
-            dalimao_st2.text = tabs[idx].text;
+
+        if (modules.length === 0) {
+            var msg = tabContainer.add("statictext", undefined, "未找到可用模块！\n请检查 Modularized_Scripts 文件夹。");
+            msg.alignment = ["center","center"];
+            panel_slider.minvalue = 0;
+            panel_slider.maxvalue = 0;
+            panel_slider.value = 0;
+            dalimao_st2.text = "无模块";
+            return;
         }
-    }
-    
-    // 标签切换事件
-    tpanel.onChange = function() {
-        if (this.selection) {
-            for (var i = 0; i < tabs.length; i++) {
-                if (tabs[i] === this.selection) {
-                    dalimao_index_st.text = i;
-                    dalimao_st2.text = tabs[i].text;
-                    panel_slider.value = i;
-                    break;
-                }
+
+        // 创建标签面板
+        var tpanel = tabContainer.add("tabbedpanel", undefined, undefined, {name: "tpanel"});
+        tpanel.alignChildren = "fill";
+        tpanel.orientation = "column";
+        tpanel.alignment = ["fill","fill"];
+        tpanel.margins = 10;
+
+        var tabs = [];
+
+        for (var i = 0; i < modules.length; i++) {
+            var tab = tpanel.add("tab", undefined, undefined, {name: modules[i].name + "_tab"});
+            tab.text = modules[i].displayName;
+            tab.orientation = "column";
+            tab.alignChildren = ["left","top"];
+            tab.spacing = 10;
+
+            try {
+                modules[i].buildUI(tab);
+                tabs.push(tab);
+            } catch(e) {
+                var errInfo = "模块「" + modules[i].displayName + "」加载失败\n" +
+                    "文件: " + modules[i].fileName + "\n" +
+                    "错误: " + e.toString();
+                var errGr = tab.add("group {orientation:'column', alignChildren:['left','top']}");
+                errGr.spacing = 5;
+                var errTitle = errGr.add("statictext", undefined, "模块「" + modules[i].displayName + "」加载失败");
+                errTitle.graphics.font = ScriptUI.newFont(errTitle.graphics.font.family, ScriptUI.FontStyle.BOLD, 12);
+                var errFile = errGr.add("statictext", undefined, "文件: " + modules[i].fileName);
+                var errDetail = errGr.add("statictext", undefined, e.toString().substring(0, 200), {multiline:true});
+                errDetail.preferredSize = [350, 50];
+                errDetail.alignment = ["fill","top"];
+                var errBtn = errGr.add("button", undefined, "复制错误信息");
+                errBtn.preferredSize = [120, 22];
+                errBtn.onClick = (function(info) {
+                    return function() { alert(info); };
+                })(errInfo);
+                tabs.push(tab);
             }
         }
+
+        // 更新滑块
+        panel_slider.minvalue = 0;
+        panel_slider.maxvalue = tabs.length - 1;
+        panel_slider.value = 0;
+        dalimao_index_st.text = "0";
+        dalimao_st2.text = tabs.length > 0 ? tabs[0].text : "";
+
+        // 滑块事件
+        panel_slider.onChange = panel_slider.onChanging = function() {
+            var idx = Math.round(this.value);
+            if (idx >= 0 && idx < tabs.length) {
+                tpanel.selection = tabs[idx];
+                dalimao_index_st.text = idx;
+                dalimao_st2.text = tabs[idx].text;
+            }
+        };
+
+        // 标签切换事件
+        tpanel.onChange = function() {
+            if (this.selection) {
+                for (var i = 0; i < tabs.length; i++) {
+                    if (tabs[i] === this.selection) {
+                        dalimao_index_st.text = i;
+                        dalimao_st2.text = tabs[i].text;
+                        panel_slider.value = i;
+                        break;
+                    }
+                }
+            }
+        };
+
+        // 默认选中指定页签
+        if (tabs.length > 0) {
+            var restoreIdx = Math.min(restoreIndex, tabs.length - 1);
+            if (restoreIdx < 0) restoreIdx = 0;
+            tpanel.selection = tabs[restoreIdx];
+            panel_slider.value = restoreIdx;
+            dalimao_index_st.text = restoreIdx;
+            dalimao_st2.text = tabs[restoreIdx].text;
+        }
     }
-    
-    // 设置默认选中第一个标签
-    if (tabs.length > 0) {
-        tpanel.selection = tabs[0];
+
+    // 初始构建
+    try {
+        buildTabs();
+    } catch(initErr) {
+        var initErrGr = pal.add("group {orientation:'column', alignment:['fill','fill'], alignChildren:['left','top']}");
+        initErrGr.spacing = 5;
+        var initErrTitle = initErrGr.add("statictext", undefined, "初始化失败");
+        initErrTitle.graphics.font = ScriptUI.newFont(initErrTitle.graphics.font.family, ScriptUI.FontStyle.BOLD, 12);
+        var initErrDetail = initErrGr.add("statictext", undefined, initErr.toString().substring(0, 200), {multiline:true});
+        initErrDetail.preferredSize = [400, 60];
+        initErrDetail.alignment = ["fill","top"];
+        var initErrBtn = initErrGr.add("button", undefined, "复制错误信息");
+        initErrBtn.preferredSize = [120, 22];
+        initErrBtn.onClick = function() { alert("初始化失败详情:\n\n" + initErr.toString()); };
     }
-    
+
+    // ==== 按钮事件 ====
+    openFolderBtn.onClick = function() {
+        var modulesFolder = new Folder(getScriptFolder() + "/Modularized_Scripts");
+        if (modulesFolder.exists) {
+            modulesFolder.execute();
+        } else {
+            alert("文件夹不存在:\n" + modulesFolder.fsName);
+        }
+    };
+
+    refreshBtn.onClick = function() {
+        try {
+            buildTabs(parseInt(dalimao_index_st.text) || 0);
+            pal.layout.layout(true);
+            pal.layout.resize();
+        } catch(e) {
+            alert("刷新失败: " + e.toString());
+        }
+    };
+
     // 布局
     pal.layout.layout(true);
     pal.layout.resize();
-    pal.onResizing = pal.onResize = function () { 
-        this.layout.resize(); 
+    pal.onResizing = pal.onResize = function () {
+        this.layout.resize();
     };
-    
+
     if (pal instanceof Window) pal.show();
-    
+
     // 清除全局标记，允许模块独立运行
     $.global.DALIMAO_LOADER_ACTIVE = undefined;
-    
+
     return pal;
 }
 
 // 执行主程序
-buildMainUI(this);
+try {
+    buildMainUI(this);
+} catch(topLevelErr) {
+    alert("DalimaoTools 启动失败:\n" + topLevelErr.toString());
+}

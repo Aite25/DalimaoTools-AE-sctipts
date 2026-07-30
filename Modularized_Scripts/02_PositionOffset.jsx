@@ -54,8 +54,8 @@ var PositionOffsetModule = (function() {
         }
         
         var pos_offset_res =
-        "group { orientation:'column', alignment:['left','top'], alignChildren:['center','center'], \
-            grAngle: Group { orientation:'row', alignment:['center','center'], \
+        "group { orientation:'column', alignment:['left','top'], alignChildren:['left','top'], \
+            grTop: Group { orientation:'row', alignment:['fill','top'], \
                 angleWheel: Group { preferredSize:[70,70] }, \
                 angleInputGr: Group { orientation:'column', alignment:['left','center'], \
                     angleRow: Group { orientation:'row', \
@@ -65,10 +65,10 @@ var PositionOffsetModule = (function() {
                     }, \
                     shiftBox: Checkbox { text:'吸附45°',preferredSize:[100,17],value:1}    \
                 }, \
-            }, \
-            gr1: Group { alignment:['center','center'], \
-                applyBtn: Button { text:'Apply',alignment:['center','center'],preferredSize:[70,17] } \
-                keyBox: Checkbox { text:'key',preferredSize:[60,17],value:1}    \
+                applyGr: Group { orientation:'column', alignment:['left','center'], alignChildren:['left','center'], \
+                    applyBtn: Button { text:'Apply',alignment:['left','center'],preferredSize:[70,17] } \
+                    keyBox: Checkbox { text:'key',preferredSize:[60,17],value:1}    \
+                }, \
             }, \
             gr2: Group { \
                 distanceSt: StaticText { text:'Distance',preferredSize:[50,17] }    \
@@ -90,14 +90,15 @@ var PositionOffsetModule = (function() {
                 resetBtn: Button { text:'Reset',alignment:['left','top'], preferredSize:[50,17] }    \
             }, \
             gr5: Group { orientation:'row', alignment:['fill','fill'], \
-                lineSweepBtn: Button { text:'CC Line Sweep',alignment:['left','top'], preferredSize:[280,20] }    \
+                lineSweepBtn: Button { text:'CC Line Sweep',alignment:['left','top'], preferredSize:[140,20] }    \
+                linearWipeBtn: Button { text:'Linear Wipe',alignment:['left','top'], preferredSize:[140,20] }    \
             }, \
         }"; 
         
         var gr = container.add(pos_offset_res);
         
         // 创建圆形角度选择器
-        var angleWheel = gr.grAngle.angleWheel.add('customBoundedValue', [0, 0, 70, 70]);
+        var angleWheel = gr.grTop.angleWheel.add('customBoundedValue', [0, 0, 70, 70]);
         angleWheel.fillBrightness = 1;
         
         // 绘制角度选择器
@@ -169,14 +170,14 @@ var PositionOffsetModule = (function() {
         
         // 更新角度显示
         function updateAngleDisplay() {
-            gr.grAngle.angleInputGr.angleRow.angleEt.text = angle.toFixed(1);
+            gr.grTop.angleInputGr.angleRow.angleEt.text = angle.toFixed(1);
             angleWheel.notify("onDraw");
         }
         
         // 设置角度
         function setAngle(ang, useShift) {
             ang = normalizeAngle(ang);
-            if (useShift || gr.grAngle.angleInputGr.shiftBox.value) {
+            if (useShift || gr.grTop.angleInputGr.shiftBox.value) {
                 ang = Math.round(ang / 45) * 45;
                 ang = normalizeAngle(ang);
             }
@@ -205,7 +206,7 @@ var PositionOffsetModule = (function() {
         angleWheel.addEventListener('mouseup', handleMouseEvent);
         
         // 角度输入框事件
-        gr.grAngle.angleInputGr.angleRow.angleEt.onChange = function () {
+        gr.grTop.angleInputGr.angleRow.angleEt.onChange = function () {
             var val = parseFloat(this.text);
             if (!isNaN(val)) {
                 setAngle(val, false);
@@ -213,7 +214,7 @@ var PositionOffsetModule = (function() {
         };
         
         // 吸附模式切换
-        gr.grAngle.angleInputGr.shiftBox.onClick = function() {
+        gr.grTop.angleInputGr.shiftBox.onClick = function() {
             if (this.value) {
                 setAngle(angle, true);
             }
@@ -297,7 +298,7 @@ var PositionOffsetModule = (function() {
         };
         
         // Apply
-        gr.gr1.applyBtn.onClick = function () {
+        gr.grTop.applyGr.applyBtn.onClick = function () {
             app.beginUndoGroup(scriptName);
             var selectedLayers = app.project.activeItem.selectedLayers;
             var curComp = app.project.activeItem;
@@ -351,9 +352,8 @@ var PositionOffsetModule = (function() {
                 var moveDistance = Math.sqrt(subv[0]*subv[0]+subv[1]*subv[1]);
                 var fDuration = (selectedLayers[0].position.keyTime(selectedLayers[0].position.selectedKeys[1])-selectedLayers[0].position.keyTime(selectedLayers[0].position.selectedKeys[0]))*curComp.frameRate;
                 
-                gr.gr1.angleEt.text = angleS%1 == 0 ? angleS : angleS.toFixed(1);
-                gr.gr1.angleSlider.value = angleS/45;
-                angstc(gr.gr1.angSt);
+                gr.grTop.angleInputGr.angleRow.angleEt.text = angleS%1 == 0 ? angleS : angleS.toFixed(1);
+                setAngle(angleS, false);
                 
                 gr.gr2.distanceEt.text = moveDistance%1 == 0 ? moveDistance : moveDistance.toFixed(1);
                 gr.gr2.distanceSlider.value = moveDistance;
@@ -445,7 +445,7 @@ var PositionOffsetModule = (function() {
         };
         
         // Checkboxes
-        gr.gr1.keyBox.onClick = function () { keyB = this.value; }
+        gr.grTop.applyGr.keyBox.onClick = function () { keyB = this.value; }
         gr.gr2.opacityBox.onClick = function () { opacityB = this.value; }
         gr.gr3.directionBox.onClick = function () { directionB = this.value; }
         
@@ -467,6 +467,50 @@ var PositionOffsetModule = (function() {
                 var completionProp = lineSweep.property("Completion");
                 completionProp.setValueAtTime(curComp.time, 100);
                 completionProp.setValueAtTime(curComp.time + timeDelta, 0);
+            }
+            
+            app.endUndoGroup();
+        };
+        
+        // Linear Wipe 按钮（带缓动曲线）
+        gr.gr5.linearWipeBtn.onClick = function () {
+            app.beginUndoGroup("Add Linear Wipe");
+            var selectedLayers = app.project.activeItem.selectedLayers;
+            var curComp = app.project.activeItem;
+            var dire = directionB * 2 - 1;
+            var timeDelta = (frames * curComp.frameDuration) * dire;
+            var easeIn = new KeyframeEase(0, 100);
+            var easeOut = new KeyframeEase(0, 0.1);
+            
+            for(var i = 0; i < selectedLayers.length; i++) {
+                // 添加 Linear Wipe 效果
+                var linearWipe = selectedLayers[i].Effects.addProperty("ADBE Linear Wipe");
+                
+                // 设置 Wipe Angle 为当前角度
+                linearWipe.property("ADBE Linear Wipe-0002").setValue(angle);
+                
+                // 设置 Transition Completion 关键帧：从 100 到 0
+                var completionProp = linearWipe.property("ADBE Linear Wipe-0001");
+                
+                if(keyB == 1) {
+                    // 带方向和缓动的关键帧
+                    completionProp.setValueAtTime(curComp.time + timeDelta * !dire, 100);
+                    completionProp.setValueAtTime(curComp.time + timeDelta * dire, 0);
+                    
+                    // 应用与 Apply 按钮相同的缓动曲线
+                    completionProp.setTemporalEaseAtKey(1, [easeIn], [easeOut]);
+                    completionProp.setTemporalEaseAtKey(2, [easeIn], [easeOut]);
+                    
+                    // 如果启用了 Opacity，添加透明度关键帧
+                    if(opacityB == 1) {
+                        var keyAI = selectedLayers[i].opacity.addKey(curComp.time);
+                        var keyBI = selectedLayers[i].opacity.addKey(curComp.time + timeDelta);
+                        selectedLayers[i].opacity.setValueAtTime(curComp.time + (frames * curComp.frameDuration) * (-!directionB), 0);
+                    }
+                } else {
+                    // 无关键帧模式，直接设置值
+                    completionProp.setValue(100);
+                }
             }
             
             app.endUndoGroup();

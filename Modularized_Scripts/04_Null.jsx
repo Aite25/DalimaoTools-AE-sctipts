@@ -42,6 +42,12 @@ var NullModule = (function() {
                         shapeNullBtn: Button { text:'Shape Null',alignment:['left','top'], preferredSize:[80,20] } \
                         parentChainBtn: Button { text:'Parent Chain',alignment:['left','top'], preferredSize:[80,20] } \
                     }, \
+                    extractPanel: Panel { text:'Extract to Null', orientation:'column', alignment:['fill','top'], alignChildren:['left','top'], \
+                        grExt: Group { orientation:'row', alignment:['left','top'], \
+                            deltaBox: Checkbox { text:'Delta (Position/Rotation)',value:0,alignment:['left','center']} \
+                            extractNullBtn: Button { text:'Extract to Null',alignment:['left','top'], preferredSize:[100,20] } \
+                        }, \
+                    }, \
                     markerPanel: Panel { text:'Marker Baker', orientation:'column', alignment:['fill','top'], alignChildren:['left','top'], \
                         gr4: Group { \
                             fromSt: StaticText { text:'From',preferredSize:[30,17],alignment:['left','center']} \
@@ -72,6 +78,9 @@ var NullModule = (function() {
             var solidNullBtn = grp.gr3.solidNullBtn;
             var shapeNullBtn = grp.gr3.shapeNullBtn;
             var parentChainBtn = grp.gr3.parentChainBtn;
+            
+            var deltaBox = grp.extractPanel.grExt.deltaBox;
+            var extractNullBtn = grp.extractPanel.grExt.extractNullBtn;
             
             var fromSlider = grp.markerPanel.gr4.fromSlider;
             var fromVarSt = grp.markerPanel.gr4.fromVarSt;
@@ -508,6 +517,120 @@ var NullModule = (function() {
             parentChainBtn.onClick = function() {
                 app.beginUndoGroup(scriptName);
                 parentChain();
+                app.endUndoGroup();
+            };
+
+            // Extract to Null 功能
+            extractNullBtn.onClick = function() {
+                app.beginUndoGroup("Extract to Null");
+                try {
+                    var thisComp = app.project.activeItem;
+                    if (!thisComp || !(thisComp instanceof CompItem)) {
+                        alert("请先打开合成");
+                        return;
+                    }
+                    var selectedLayers = thisComp.selectedLayers;
+                    if (selectedLayers.length == 0) {
+                        alert("请先选择图层");
+                        return;
+                    }
+                    
+                    var useDelta = deltaBox.value;
+                    
+                    // 需要提取的 Transform 属性
+                    var transformNames = [
+                        { matchName: "ADBE Position", aeName: "Position", isMulti: true },
+                        { matchName: "ADBE Rotate Z", aeName: "Rotation", isMulti: false },
+                        { matchName: "ADBE Scale", aeName: "Scale", isMulti: true },
+                        { matchName: "ADBE Anchor Point", aeName: "Anchor Point", isMulti: true },
+                        { matchName: "ADBE Orientation", aeName: "Orientation", isMulti: true }
+                    ];
+                    
+                    for (var li = 0; li < selectedLayers.length; li++) {
+                        var srcLayer = selectedLayers[li];
+                        
+                        // 收集有关键帧的属性
+                        var propsToExtract = [];
+                        for (var ti = 0; ti < transformNames.length; ti++) {
+                            var prop = srcLayer.transform.property(transformNames[ti].matchName);
+                            if (prop && prop.numKeys > 0) {
+                                propsToExtract.push({
+                                    prop: prop,
+                                    info: transformNames[ti]
+                                });
+                            }
+                        }
+                        
+                        // 也检查不透明度
+                        if (srcLayer.opacity.numKeys > 0) {
+                            propsToExtract.push({
+                                prop: srcLayer.opacity,
+                                info: { matchName: "ADBE Opacity", aeName: "Opacity", isMulti: false }
+                            });
+                        }
+                        
+                        if (propsToExtract.length == 0) continue;
+                        
+                        // 创建空对象
+                        var nullL = thisComp.layers.addNull();
+                        nullL.name = srcLayer.name + " motion";
+                        nullL.moveBefore(srcLayer);
+                        nullL.label = 9;
+                        
+                        for (var pi = 0; pi < propsToExtract.length; pi++) {
+                            var srcProp = propsToExtract[pi].prop;
+                            var info = propsToExtract[pi].info;
+                            
+                            // 获取对应的空对象属性
+                            var nullProp;
+                            if (info.matchName == "ADBE Opacity") {
+                                nullProp = nullL.opacity;
+                            } else {
+                                nullProp = nullL.transform.property(info.matchName);
+                            }
+                            
+                            if (!nullProp) continue;
+                            
+                            var numKeys = srcProp.numKeys;
+                            var firstValue = srcProp.keyValue(1);
+                            var isDeltaProp = useDelta && (info.matchName == "ADBE Position" || info.matchName == "ADBE Rotate Z" || info.matchName == "ADBE Anchor Point");
+                            
+                            // 复制关键帧
+                            for (var k = 1; k <= numKeys; k++) {
+                                var keyTime = srcProp.keyTime(k);
+                                var keyValue = srcProp.keyValue(k);
+                                
+                                // 差值模式：减去第一个关键帧的值
+                                if (isDeltaProp) {
+                                    if (info.isMulti && keyValue.length != undefined) {
+                                        var delta = [];
+                                        for (var d = 0; d < keyValue.length; d++) {
+                                            delta[d] = keyValue[d] - firstValue[d];
+                                        }
+                                        keyValue = delta;
+                                    } else if (!info.isMulti) {
+                                        keyValue = keyValue - firstValue;
+                                    }
+                                }
+                                
+                                nullProp.setValueAtTime(keyTime, keyValue);
+                                
+                                // 复制缓动曲线
+                                try {
+                                    var inEase = srcProp.keyInTemporalEase(k);
+                                    var outEase = srcProp.keyOutTemporalEase(k);
+                                    nullProp.setTemporalEaseAtKey(k, inEase, outEase);
+                                } catch(easeErr) {
+                                    // 空间属性（如位置）可能不支持缓动，忽略
+                                }
+                            }
+                        }
+                        
+                        nullL.selected = 1;
+                    }
+                } catch(e) {
+                    alert("Extract to Null 错误:\n" + e.toString());
+                }
                 app.endUndoGroup();
             };
 

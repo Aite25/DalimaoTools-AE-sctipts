@@ -1,6 +1,6 @@
 /*
  * 快捷键脚本 - Move OutPoint to Current Time
- * 将选中图层的出点移到当前时间
+ * 模拟 AE 默认 ] 键功能：将选中图层的出点移到当前时间
  */
 (function() {
     try {
@@ -11,12 +11,13 @@
 
         app.beginUndoGroup("Move OutPoint");
         var time = thisComp.time;
-        var minOut = selectedLayers[0].outPoint;
+        var fd = thisComp.frameDuration;
+
         for (var i = 0; i < selectedLayers.length; i++) {
-            if (minOut < selectedLayers[i].outPoint) minOut = selectedLayers[i].outPoint;
-        }
-        for (var i = 0; i < selectedLayers.length; i++) {
-            selectedLayers[i].startTime = selectedLayers[i].startTime + time - minOut;
+            var layer = selectedLayers[i];
+            // outPoint 是排他性的（指向最后一帧之后），加一帧修正
+            var offset = time - layer.outPoint + fd;
+            layer.startTime = layer.startTime + offset;
         }
         app.endUndoGroup();
     } catch(e) {

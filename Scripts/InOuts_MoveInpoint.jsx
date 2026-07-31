@@ -5,9 +5,9 @@
 (function() {
     try {
         var thisComp = app.project.activeItem;
-        if (!thisComp) { alert("请先打开合成"); return; }
+        if (!thisComp) return;
         var selectedLayers = thisComp.selectedLayers;
-        if (selectedLayers.length == 0) { alert("请先选择图层"); return; }
+        if (selectedLayers.length == 0) return;
 
         app.beginUndoGroup("Move InPoint");
         var time = thisComp.time;
@@ -19,7 +19,5 @@
             selectedLayers[i].startTime = selectedLayers[i].startTime + time - minIn;
         }
         app.endUndoGroup();
-    } catch(e) {
-        alert("Move InPoint Error:\n" + e.toString());
-    }
+    } catch(e) {}
 })();

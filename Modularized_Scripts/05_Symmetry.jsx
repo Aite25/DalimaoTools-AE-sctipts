@@ -115,6 +115,54 @@ var SymmetryModule = (function() {
                 return { layers: layersToProcess, center: centerLayer };
             }
             
+            // 形状图层属性绑定：把副本 Contents 的尺寸/位置/路径绑定到源图层
+            function bindShapeProps(layer, srcName) {
+                var contents = layer.property("Contents");
+                if (!contents) return;
+                bindShapeContents(contents, 'thisComp.layer("' + srcName + '")', "");
+            }
+            
+            function bindShapeContents(contents, srcBase, chain) {
+                var i, p;
+                for (i = 1; i <= contents.numProperties; i++) {
+                    var item = contents.property(i);
+                    var groupContents = item.property("Contents");
+                    if (groupContents) {
+                        bindShapeContents(groupContents, srcBase, chain + '.content("' + item.name + '")');
+                        continue;
+                    }
+                    var sizeProp = item.property("Size");
+                    var posProp = item.property("Position");
+                    if (sizeProp && posProp) {
+                        sizeProp.expression = srcBase + chain + '.content("' + item.name + '").size;';
+                        posProp.expression = srcBase + chain + '.content("' + item.name + '").position;';
+                        var roundProp = item.property("Roundness");
+                        if (roundProp) roundProp.expression = srcBase + chain + '.content("' + item.name + '").roundness;';
+                        continue;
+                    }
+                    if (item.property("Points")) {
+                        var names = ["Points", "Position", "Inner Radius", "Outer Radius", "Inner Roundness", "Outer Roundness", "Rotation"];
+                        var accessors = {
+                            "Points": "points",
+                            "Position": "position",
+                            "Inner Radius": "innerRadius",
+                            "Outer Radius": "outerRadius",
+                            "Inner Roundness": "innerRoundness",
+                            "Outer Roundness": "outerRoundness",
+                            "Rotation": "rotation"
+                        };
+                        for (p = 0; p < names.length; p++) {
+                            var sub = item.property(names[p]);
+                            if (sub) sub.expression = srcBase + chain + '.content("' + item.name + '").' + accessors[names[p]] + ';';
+                        }
+                        continue;
+                    }
+                    if (item.numProperties == 0) {
+                        item.expression = srcBase + chain + '.content("' + item.name + '").path;';
+                    }
+                }
+            }
+            
             function applySymmetry(srcLayer, dupLayer, scaleX, scaleY, rotDeg, centerLayer, thisComp) {
                 var useExpr = symExpressionBox.value;
                 var compCenter = [thisComp.width / 2, thisComp.height / 2];
@@ -190,6 +238,9 @@ var SymmetryModule = (function() {
                         dupLayer.rotation.setValue(newRot);
                     }
                 }
+                
+                // 形状图层属性绑定：把副本 Contents 的尺寸/位置/路径绑定到源图层
+                bindShapeProps(dupLayer, srcLayer.name);
             }
             
             // X<> 水平镜像
@@ -201,7 +252,7 @@ var SymmetryModule = (function() {
                 for (var i = 0; i < info.layers.length; i++) {
                     var dup = info.layers[i].duplicate();
                     dup.name = info.layers[i].name + " X";
-                    dup.moveBefore(info.layers[i]);
+                    dup.moveAfter(info.layers[i]);
                     dup.label = 6;
                     applySymmetry(info.layers[i], dup, -1, 1, 0, info.center, thisComp);
                 }
@@ -217,7 +268,7 @@ var SymmetryModule = (function() {
                 for (var i = 0; i < info.layers.length; i++) {
                     var dup = info.layers[i].duplicate();
                     dup.name = info.layers[i].name + " Y";
-                    dup.moveBefore(info.layers[i]);
+                    dup.moveAfter(info.layers[i]);
                     dup.label = 6;
                     applySymmetry(info.layers[i], dup, 1, -1, 0, info.center, thisComp);
                 }
@@ -234,21 +285,21 @@ var SymmetryModule = (function() {
                     // X 对称
                     var dupX = info.layers[i].duplicate();
                     dupX.name = info.layers[i].name + " X";
-                    dupX.moveBefore(info.layers[i]);
+                    dupX.moveAfter(info.layers[i]);
                     dupX.label = 6;
                     applySymmetry(info.layers[i], dupX, -1, 1, 0, info.center, thisComp);
                     
                     // Y 对称
                     var dupY = info.layers[i].duplicate();
                     dupY.name = info.layers[i].name + " Y";
-                    dupY.moveBefore(dupX);
+                    dupY.moveAfter(info.layers[i]);
                     dupY.label = 6;
                     applySymmetry(info.layers[i], dupY, 1, -1, 0, info.center, thisComp);
                     
                     // XY 对称
                     var dupXY = info.layers[i].duplicate();
                     dupXY.name = info.layers[i].name + " XY";
-                    dupXY.moveBefore(dupY);
+                    dupXY.moveAfter(info.layers[i]);
                     dupXY.label = 6;
                     applySymmetry(info.layers[i], dupXY, -1, -1, 0, info.center, thisComp);
                 }
@@ -270,7 +321,6 @@ var SymmetryModule = (function() {
                     for (var i = 0; i < sel.length; i++) {
                         srcNames.push(sel[i].name);
                     }
-                    var bottomName = srcNames[srcNames.length - 1];
                     
                     // 1. 先创建计数空对象（会出现在 index 1，后续再移动）
                     var counterNull = thisComp.layers.addNull();
@@ -278,12 +328,14 @@ var SymmetryModule = (function() {
                     counterNull.label = 13;
                     counterNull.enabled = false;
                     
-                    // 2. 复制选中图层（放在选中图层上方）
+                    // 2. 复制选中图层（副本放在选中图层下方）
+                    var bottomRing = null;
                     for (var i = 0; i < sel.length; i++) {
                         var dup = sel[i].duplicate();
                         dup.name = sel[i].name + " Ring";
                         dup.label = 6;
-                        dup.moveBefore(sel[i]);
+                        dup.moveAfter(sel[i]);
+                        bottomRing = dup;
                     }
                     
                     // 3. 创建中心空对象（会出现在 index 1）
@@ -291,19 +343,12 @@ var SymmetryModule = (function() {
                     centerNull.name = "SymCenter_" + uid;
                     centerNull.label = 9;
                     
-                    // 4. 把计数空对象移到底部选中图层下方
-                    // 通过名字找到底部图层
-                    for (var li = 1; li <= thisComp.numLayers; li++) {
-                        if (thisComp.layer(li).name === bottomName) {
-                            counterNull.moveAfter(thisComp.layer(li));
-                            break;
-                        }
-                    }
+                    // 4. 把计数空对象移到底部副本下方
+                    if (bottomRing) counterNull.moveAfter(bottomRing);
                     
                     // 5. 计算 index 并创建滑块
                     var centerIdx = centerNull.index;
                     var counterIdx = counterNull.index;
-                    var totalCount = counterIdx - centerIdx - 1;
                     
                     var countSlider = centerNull.Effects.addProperty("ADBE Slider Control");
                     countSlider.name = "Ring Count";
@@ -312,25 +357,24 @@ var SymmetryModule = (function() {
                     // Angle gap 表达式 = 360 / Ring Count（带除零保护）
                     var angleGapSlider = centerNull.Effects.addProperty("ADBE Slider Control");
                     angleGapSlider.name = "Angle gap";
-                    angleGapSlider(1).expression = 'ct = effect("Ring Count")("Slider");\nct == 0? 0 : 360 / ct;';
+                    angleGapSlider(1).expression = 'ct = effect("Ring Count")(1);\nct == 0? 0 : 360 / ct;';
                     
-                    // 6. 给复制图层添加 ID 滑块 + Position/Rotation 表达式
-                    var currentId = 1;
+                    // 6. 给复制图层添加 ID 滑块 + Position/Rotation/Scale 表达式
                     for (var li = centerIdx + 1; li < counterIdx; li++) {
                         var layer = thisComp.layer(li);
                         if (layer.name === centerNull.name || layer.name === counterNull.name) continue;
                         if (layer.name.indexOf(" Ring", layer.name.length - 5) === -1) continue;
                         
-                        // 添加 ID 滑块（表达式自动计算 index 差值）
+                        // 添加 ID 滑块（副本在源图层下方，index 偏移 1，减 1 保持 ID 序列一致）
                         var idSlider = layer.Effects.addProperty("ADBE Slider Control");
                         idSlider.name = "ID";
-                        idSlider(1).expression = 'index - thisComp.layer("' + centerNull.name + '").index';
+                        idSlider(1).expression = 'index - thisComp.layer("' + centerNull.name + '").index - 1';
                         
                         // Position 表达式：绕中心旋转
                         layer.position.expression =
                             'var center = thisComp.layer("' + centerNull.name + '").position;\n' +
-                            'var angle_gap = thisComp.layer("' + centerNull.name + '").effect("Angle gap")("Slider");\n' +
-                            'var id = effect("ID")("Slider");\n' +
+                            'var angle_gap = thisComp.layer("' + centerNull.name + '").effect("Angle gap")(1);\n' +
+                            'var id = effect("ID")(1);\n' +
                             'var src = thisComp.layer("' + srcNames[0] + '").position;\n' +
                             'var d = src - center;\n' +
                             'var rad = degreesToRadians(id * angle_gap);\n' +
@@ -338,12 +382,16 @@ var SymmetryModule = (function() {
                         
                         // Rotation 表达式：参考 dulplicate layer 模式
                         layer.rotation.expression =
-                            'id = effect("ID")("Slider");\n' +
-                            'rot_delta = thisComp.layer("' + centerNull.name + '").effect("Angle gap")("Slider");\n' +
+                            'id = effect("ID")(1);\n' +
+                            'rot_delta = thisComp.layer("' + centerNull.name + '").effect("Angle gap")(1);\n' +
                             'or = thisComp.layer("' + srcNames[0] + '").transform.rotation;\n' +
                             'id * rot_delta + or;';
                         
-                        currentId++;
+                        // Scale 表达式：绑定选中源图层的缩放
+                        layer.scale.expression = 'thisComp.layer("' + srcNames[0] + '").transform.scale;';
+                        
+                        // 形状图层属性绑定：把副本 Contents 绑定到其源图层
+                        bindShapeProps(layer, thisComp.layer(li - 1).name);
                     }
                     
                     app.endUndoGroup();
@@ -526,17 +574,10 @@ var SymmetryModule = (function() {
             }
 
             function shape_xyflip() {
-                var repeaterArr = [];
-                var rep_layerArr = [];
-                var patharr = add_repeater();
-                repeaterArr = patharr[0];
-                rep_layerArr = patharr[1];
-                
-                for (var i = 0; i < repeaterArr.length; i++) {
-                    repeaterArr[i].property("ADBE Vector Repeater Copies").setValue(2);
-                    repeaterArr[i].property("ADBE Vector Repeater Transform").property("Scale").setValue([-100, -100]);
-                    repeaterArr[i].name = "XY flip - Repeater";
-                }
+                // 形状层无法靠单个 repeater 实现点对称：改为两个 repeater（X 翻转 + Y 翻转），
+                // 效果等同于连续按 X flip 和 Y flip 两个按钮
+                shape_xflip();
+                shape_yflip();
             }
 
             function shape_90_degree_duplicate() {
@@ -579,7 +620,7 @@ var SymmetryModule = (function() {
                     var slider = rep_layerArr[i].Effects.addProperty("ADBE Slider Control");
                     slider.name = "Copies " + depth_idx_str;
                     slider(1).setValue(copies);
-                    repeaterArr[i].property("ADBE Vector Repeater Copies").expression = "effect(\"" + slider.name + "\")(\"Slider\")";
+                    repeaterArr[i].property("ADBE Vector Repeater Copies").expression = "effect(\"" + slider.name + "\")(1)";
                     repeaterArr[i].name = "Ring - Repeater " + depth_idx_str;
                     repeaterArr[i].property("ADBE Vector Repeater Transform").property("Rotation").expression = "thisProperty.propertyGroup(2).copies == 0?0:360/thisProperty.propertyGroup(2).copies;";
                 }
@@ -597,7 +638,7 @@ var SymmetryModule = (function() {
                     var depth_idx_str = repeaterArr[i].propertyDepth + "_" + repeaterArr[i].propertyIndex;
                     slider.name = "Copies " + depth_idx_str;
                     slider(1).setValue(copies);
-                    repeaterArr[i].property("ADBE Vector Repeater Copies").expression = "effect(\"" + slider.name + "\")(\"Slider\")";
+                    repeaterArr[i].property("ADBE Vector Repeater Copies").expression = "effect(\"" + slider.name + "\")(1)";
                     repeaterArr[i].property("ADBE Vector Repeater Offset").expression = "(thisProperty.propertyGroup(1).copies-1) * -0.5";
                     
                     var position_slider = rep_layerArr[i].Effects.addProperty("ADBE Point Control");
@@ -666,7 +707,7 @@ var SymmetryModule = (function() {
                 slider.name = "Box Size " + depth_idx_str;
                 slider(1).setValue(100);
 
-                sRetengle.property("Size").expression = "size = effect(\"" + slider.name + "\")(\"Slider\");\n[size,size]";
+                sRetengle.property("Size").expression = "size = effect(\"" + slider.name + "\")(1);\n[size,size]";
                 
                 var sgroup1Stroke = sgroup1("ADBE Vectors Group").addProperty("ADBE Vector Graphic - Stroke");
                 sgroup1Stroke.enabled = 0;
@@ -694,7 +735,7 @@ var SymmetryModule = (function() {
                 slider.name = "Circle Size " + depth_idx_str;
                 slider(1).setValue(100);
 
-                sRetengle.property("Size").expression = "size = effect(\"" + slider.name + "\")(\"Slider\");\n[size,size]";
+                sRetengle.property("Size").expression = "size = effect(\"" + slider.name + "\")(1);\n[size,size]";
                 
                 var sgroup1Stroke = sgroup1("ADBE Vectors Group").addProperty("ADBE Vector Graphic - Stroke");
                 sgroup1Stroke.enabled = 0;
